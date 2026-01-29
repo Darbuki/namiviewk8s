@@ -1,0 +1,2 @@
+#! /bin/bash
+kubectl exec -it mongo-0 -n namiview-infra -- mongosh --eval 'rs.initiate({_id: "rs0", members: [{_id: 0, host: "mongo-0.mongo.namiview-infra.svc.cluster.local:27017"}, {_id: 1, host: "mongo-1.mongo.namiview-infra.svc.cluster.local:27017"}, {_id: 2, host: "mongo-2.mongo.namiview-infra.svc.cluster.local:27017"}]})'
