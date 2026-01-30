@@ -50,4 +50,4 @@ spec:
         resources:
           requests:
             storage: 3Gi
-        storageClassName: mongo-nfs-sc
+        storageClassName: mongo-nfs-storage

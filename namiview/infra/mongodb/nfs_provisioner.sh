@@ -5,4 +5,4 @@ helm install nfs-provisioner nfs-subdir-external-provisioner/nfs-subdir-external
     --set nfs.server=<server_ip> \
     --set nfs.path=<storage_path> \
     --set storageClass.name=<storage_class_name> \
-    --set storageClass.onDelete=delete
+    --set storageClass.onDelete=<on_delete_policy>
