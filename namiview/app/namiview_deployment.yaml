@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: namiview-app
+  namespace: namiview-app # The new home for your app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: namiview-app
+  template:
+    metadata:
+      labels:
+        app: namiview-app
+    spec:
+      imagePullSecrets:
+        - name: secret-dockercfg # Ensure this secret is ALSO created in the namiview-app namespace
+      containers:
+        - name: app
+          image: darbuki/namiview:30-01
+          ports:
+            - containerPort: 8501
+          env:
+            - name: MONGO_URL
+              value: "mongodb://user:pass@mongo.namiview-infra.svc.cluster.local:27017/db?replicaSet=rs0"            
+            - name: MINIO_ENDPOINT
+              value: "minio.namiview-infra.svc.cluster.local"            
+            - name: MONGO_USER
+              valueFrom:
+                secretKeyRef:
+                  name: namiview-connection-secret
+                  key: MONGO_USER
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: namiview-connection-secret
+                  key: MONGO_PASSWORD
+            - name: MONGO_DB
+              valueFrom:
+                secretKeyRef:
+                  name: namiview-connection-secret
+                  key: MONGO_DB
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: namiview-connection-secret
+                  key: MINIO_ROOT_USER
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: namiview-connection-secret
+                  key: MINIO_ROOT_PASSWORD
+            - name: MINIO_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: namiview-connection-secret
+                  key: MINIO_BUCKET
