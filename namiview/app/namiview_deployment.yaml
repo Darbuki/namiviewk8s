@@ -21,10 +21,10 @@ spec:
           ports:
             - containerPort: 8501
           env:
-            - name: MONGO_URL
+            - name: MONGO_URI
               value: "mongodb://user:pass@mongo.namiview-infra.svc.cluster.local:27017/db?replicaSet=rs0"            
             - name: MINIO_ENDPOINT
-              value: "minio.namiview-infra.svc.cluster.local"            
+              value: "minio.namiview-infra.svc.cluster.local:9000"
             - name: MONGO_USER
               valueFrom:
                 secretKeyRef:
@@ -40,18 +40,23 @@ spec:
                 secretKeyRef:
                   name: namiview-connection-secret
                   key: MONGO_DB
-            - name: MINIO_ROOT_USER
+            - name: MINIO_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
                   name: namiview-connection-secret
-                  key: MINIO_ROOT_USER
-            - name: MINIO_ROOT_PASSWORD
+                  key: MINIO_ACCESS_KEY
+            - name: MINIO_SECRET_KEY
               valueFrom:
                 secretKeyRef:
                   name: namiview-connection-secret
-                  key: MINIO_ROOT_PASSWORD
+                  key: MINIO_SECRET_KEY
             - name: MINIO_BUCKET
               valueFrom:
                 secretKeyRef:
                   name: namiview-connection-secret
                   key: MINIO_BUCKET
+            - name: MINIO_SECURE
+              valueFrom:
+                secretKeyRef:
+                  name: namiview-connection-secret
+                  key: MINIO_SECURE
