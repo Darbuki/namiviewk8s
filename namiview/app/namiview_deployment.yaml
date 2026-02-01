@@ -60,3 +60,20 @@ spec:
                 secretKeyRef:
                   name: namiview-connection-secret
                   key: MINIO_SECURE
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: "/app/google_credentials.json"
+          volumeMounts:
+            - name: google-creds
+              # FIXED: This path is where the file will live
+              mountPath: "/app/google_credentials.json"
+              # FIXED: subPath ensures we don't overwrite the whole /app folder
+              subPath: "google_credentials.json"
+              readOnly: true
+      volumes:
+        - name: google-creds
+          secret:
+            secretName: google-creds-k8s-secret
+            items:
+              # FIXED: VSO puts the full JSON in the '_raw' key
+              - key: "_raw"
+                path: "google_credentials.json"
