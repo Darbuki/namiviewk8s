@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: namiview-app
+  namespace: namiview-app # The new home for your app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: namiview-app
+  template:
+    metadata:
+      labels:
+        app: namiview-app
+    spec:
+      imagePullSecrets:
+        - name: secret-dockercfg # Ensure this secret is ALSO created in the namiview-app namespace
+      containers:
+        - name: app
+          image: darbuki/namiview:30-01
+          ports:
+            - containerPort: 8501
+          env:
+            - name: MINIO_ENDPOINT
+              value: "minio.namiview-infra.svc.cluster.local:9000"
+            - name: MONGO_USER
+              valueFrom:
+                secretKeyRef:
+                  name: namiview-connection-secret
+                  key: MONGO_USER
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: namiview-connection-secret
+                  key: MONGO_PASSWORD
+            - name: MONGO_DB
+              valueFrom:
+                secretKeyRef:
+                  name: namiview-connection-secret
+                  key: MONGO_DB
+            - name: MONGO_URI
+              value: "mongodb://$(MONGO_USER):$(MONGO_PASSWORD)@mongo-0.mongo.namiview-infra.svc.cluster.local:27017,mongo-1.mongo.namiview-infra.svc.cluster.local:27017,mongo-2.mongo.namiview-infra.svc.cluster.local:27017/namiview?replicaSet=rs0&authSource=admin"                  
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: namiview-connection-secret
+                  key: MINIO_ACCESS_KEY
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: namiview-connection-secret
+                  key: MINIO_SECRET_KEY
+            - name: MINIO_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: namiview-connection-secret
+                  key: MINIO_BUCKET
+            - name: MINIO_SECURE
+              valueFrom:
+                secretKeyRef:
+                  name: namiview-connection-secret
+                  key: MINIO_SECURE
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: "/app/google_credentials.json"
+          volumeMounts:
+            - name: google-creds
+              # FIXED: This path is where the file will live
+              mountPath: "/app/google_credentials.json"
+              # FIXED: subPath ensures we don't overwrite the whole /app folder
+              subPath: "google_credentials.json"
+              readOnly: true
+      volumes:
+        - name: google-creds
+          secret:
+            secretName: google-creds-k8s-secret
+            items:
+              # FIXED: VSO puts the full JSON in the '_raw' key
+              - key: "_raw"
+                path: "google_credentials.json"

@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongo
+  namespace: namiview-infra
+spec:
+  selector:
+    matchLabels:
+      app: mongo
+  serviceName: mongo
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      serviceAccountName: mongo-sidecar-sa
+      terminationGracePeriodSeconds: 10
+      containers:
+        # 1. THE DATABASE
+        - name: mongo
+          image: mongo:7.0
+          command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: mongo-storage
+              mountPath: /data/db
+
+        # 2. THE BEST-PRACTICE SIDECAR
+        - name: mongo-sidecar
+          image: cvallance/mongo-k8s-sidecar
+          env:
+            - name: MONGO_SIDECAR_KUBERNETES_CLUSTER_MGMT
+              value: "false"       
+            - name: MONGO_SIDECAR_POD_LABELS
+              value: "app=mongo"
+            - name: KUBERNETES_MONGO_SERVICE_NAME
+              value: "mongo"
+            - name: MONGODB_REPLICA_SET
+              value: "rs0"
+            - name: KUBERNETES_NAMESPACE
+              value: "namiview-infra"
+
+  volumeClaimTemplates:
+    - metadata:
+        name: mongo-storage
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: mongo-nfs-storage
+        resources:
+          requests:
+            storage: 3Gi
