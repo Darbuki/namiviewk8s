@@ -1,0 +1,127 @@
+---
+# 1. THE LOGIC: Script to configure the cluster and user
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-init-script
+  namespace: namiview-infra
+data:
+  init.sh: |
+    #!/bin/bash
+    # Target mongo-0 specifically via internal DNS to initiate the replica set
+    until mongosh --host mongo-0.mongo.namiview-infra.svc.cluster.local --eval "db.adminCommand('ping')" &>/dev/null; do
+      echo "Waiting for mongo-0 to be ready..."
+      sleep 2
+    done
+
+    echo "Checking Replica Set status..."
+    mongosh --host mongo-0.mongo.namiview-infra.svc.cluster.local --eval "
+      try {
+        rs.status();
+        print('Replica Set already initialized');
+      } catch (err) {
+        print('Initializing Replica Set...');
+        rs.initiate({
+          _id: 'rs0',
+          members: [
+            { _id: 0, host: 'mongo-0.mongo.namiview-infra.svc.cluster.local:27017' },
+            { _id: 1, host: 'mongo-1.mongo.namiview-infra.svc.cluster.local:27017' },
+            { _id: 2, host: 'mongo-2.mongo.namiview-infra.svc.cluster.local:27017' }
+          ]
+        });
+      }
+    "
+
+    echo "Creating Administrative User and App Database..."
+    mongosh --host mongo-0.mongo.namiview-infra.svc.cluster.local admin --eval "
+      if (db.getUser('$MONGO_USER') == null) {
+        db.createUser({
+          user: '$MONGO_USER',
+          pwd: '$MONGO_PASSWORD',
+          roles: [{ role: 'root', db: 'admin' }]
+        });
+        db.getSiblingDB('$MONGO_DB').setup_check.insertOne({initialized_at: new Date()});
+        print('User and DB structure created successfully');
+      } else {
+        print('User already exists, skipping creation');
+      }
+    "
+
+---
+# 2. THE AUTOMATOR: The Job that runs the setup script
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mongo-setup-job
+  namespace: namiview-infra
+spec:
+  template:
+    spec:
+      containers:
+      - name: mongo-setup
+        image: mongo:7.0
+        command: ["/bin/bash", "/scripts/init.sh"]
+        env:
+          - name: MONGO_USER
+            valueFrom:
+              secretKeyRef:
+                name: mongo-secret
+                key: MONGO_USER
+          - name: MONGO_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mongo-secret
+                key: MONGO_PASSWORD
+          - name: MONGO_DB
+            valueFrom:
+              secretKeyRef:
+                name: mongo-secret
+                key: MONGO_DB
+        volumeMounts:
+        - name: script-vol
+          mountPath: /scripts
+      volumes:
+      - name: script-vol
+        configMap:
+          name: mongo-init-script
+      restartPolicy: OnFailure
+  backoffLimit: 10
+
+---
+# 3. THE DATABASE: Your existing StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongo
+  namespace: namiview-infra
+spec:
+  selector:
+    matchLabels:
+      app: mongo
+  serviceName: mongo
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: mongo
+          image: mongo:7.0
+          command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: mongo-storage
+              mountPath: /data/db
+  volumeClaimTemplates:
+    - metadata:
+        name: mongo-storage
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 3Gi
+        storageClassName: mongo-nfs-storage
