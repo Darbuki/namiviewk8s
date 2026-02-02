@@ -8,10 +8,13 @@ spec:
   source:
     repoURL: git@github.com:darbuki/namiviewk8s.git
     targetRevision: argo_deployment
-    path: infrastructure/vault 
+    path: infrastructure/vault
+    # THIS BLOCK IS THE FIX:
+    kustomize:
+      version: v5 # Or the version your ArgoCD supports
   destination:
     server: https://kubernetes.default.svc
-    namespace: vault # Vault only
+    namespace: vault
   syncPolicy:
     automated:
       prune: true
