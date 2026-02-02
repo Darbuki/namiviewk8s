@@ -3,3 +3,31 @@ kind: Kustomization
 
 resources:
   - https://raw.githubusercontent.com/argoproj/argo-cd/v3.3.0/manifests/ha/install.yaml
+patches:
+  # Patch 1: Enable Helm
+  - target:
+      kind: ConfigMap
+      name: argocd-cm
+    patch: |-
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: argocd-cm
+      data:
+        kustomize.buildOptions: --enable-helm
+
+  - target:
+      kind: Service
+      name: argocd-server
+    patch: |-
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: argocd-server
+      spec:
+        type: NodePort
+        ports:
+        - name: https
+          port: 443
+          targetPort: 8080
+          nodePort: 31311 
