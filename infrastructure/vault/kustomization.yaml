@@ -36,3 +36,15 @@ helmCharts:
                       values:
                         - vault
                 topologyKey: "kubernetes.io/hostname"
+
+patches:
+  - target:
+      kind: Service
+      name: vault
+    patch: |-
+      - op: replace
+        path: /spec/type
+        value: NodePort
+      - op: add
+        path: /spec/ports/0/nodePort
+        value: 30820
