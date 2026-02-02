@@ -9,6 +9,8 @@ spec:
     repoURL: git@github.com:darbuki/namiviewk8s.git
     targetRevision: argo_deployment
     path: infrastructure/vault
+    directory:
+      recurse: true    
   destination:
     server: https://kubernetes.default.svc
     namespace: vault # Vault only
