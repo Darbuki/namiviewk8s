@@ -1,18 +1,20 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: infrastructure-root
+  name: vault-stack
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: git@github.com:darbuki/namiviewk8s.git
     targetRevision: argo_deployment
-    path: infrastructure # ArgoCD will find storage-app.yaml and vault-app.yaml here
+    path: infrastructure/vault
   destination:
     server: https://kubernetes.default.svc
-    namespace: argocd
+    namespace: vault # Vault only
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
