@@ -1,11 +1,21 @@
 global:
   security:
     allowInsecureImages: true
+
 image:
   registry: docker.io
   repository: minio/minio
   tag: RELEASE.2025-09-07T16-13-09Z
+  pullPolicy: IfNotPresent
+
 auth:
   existingSecret: "minio-auth-secret"
   rootUserSecretKey: "minio-root-user"
   rootPasswordSecretKey: "minio-root-password"
+
+console:
+  enabled: true
+
+persistence:
+  enabled: true
+  size: 10Gi
