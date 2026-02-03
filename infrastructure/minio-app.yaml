@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: minio-stack
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: git@github.com:darbuki/namiviewk8s.git
+    targetRevision: argo_deployment
+    path: infrastructure/minio
+    kustomize: {}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: namiview-infra
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

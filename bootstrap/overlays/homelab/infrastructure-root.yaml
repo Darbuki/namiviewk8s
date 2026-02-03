@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: infrastructure-root
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: git@github.com:darbuki/namiviewk8s.git
+    targetRevision: argo_deployment
+    path: infrastructure
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

@@ -1,0 +1,48 @@
+global:
+  security:
+    allowInsecureImages: true
+
+image:
+  registry: docker.io
+  repository: minio/minio
+  tag: RELEASE.2025-09-07T16-13-09Z
+
+# This handles the second 'on' entry you saw
+extraEnvVars:
+  - name: MINIO_BROWSER
+    value: "on"
+
+# This fixes the Pod manifest's missing port
+containerPorts:
+  api: 9000
+  console: 9001
+
+# This fixes the NetworkPolicy whitelist
+networkPolicy:
+  enabled: true
+  extraIngress:
+    - ports:
+        - port: 9001
+
+service:
+  type: ClusterIP
+  extraPorts:
+    - name: console
+      port: 9001
+      targetPort: 9001
+
+# Force the command to use the port
+command: ["/bin/sh", "-c"]
+args: ["minio server /bitnami/minio/data --console-address :9001"]
+
+auth:
+  existingSecret: "minio-auth-secret"
+  rootUserSecretKey: "minio-root-user"
+  rootPasswordSecretKey: "minio-root-password"
+
+console:
+  enabled: false
+
+persistence:
+  enabled: true
+  size: 10Gi
