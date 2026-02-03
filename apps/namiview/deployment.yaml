@@ -72,5 +72,5 @@ spec:
           secret:
             secretName: namiview-google-creds-external-secret
             items:
-              - key: "google-cred.json"
+              - key: "google-creds.json"
                 path: "google_credentials.json"
