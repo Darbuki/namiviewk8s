@@ -8,20 +8,30 @@ image:
   tag: RELEASE.2025-09-07T16-13-09Z
   pullPolicy: IfNotPresent
 
+# Formalizes the ports on the Pod level so kubelet can forward them
+containerPorts:
+  api: 9000
+  console: 9001
+
 auth:
   existingSecret: "minio-auth-secret"
   rootUserSecretKey: "minio-root-user"
   rootPasswordSecretKey: "minio-root-password"
 
+# We use the built-in console, not the Bitnami sidecar
 console:
   enabled: false
+
 service:
   type: ClusterIP
+  # Exposes the console port on the Service level
   extraPorts:
     - name: console
       port: 9001
       targetPort: 9001
       protocol: TCP
+
+# Explicitly starts the server and binds the console to 9001
 command: ["/bin/sh", "-c"]
 args: ["minio server /bitnami/minio/data --console-address :9001"]
 
