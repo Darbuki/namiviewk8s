@@ -15,7 +15,10 @@ auth:
 
 console:
   enabled: false
-
+service:
+  ports:
+    api: 9000
+    console: 9001
 command: ["/bin/sh", "-c"]
 args: ["minio server /bitnami/minio/data --console-address :9001"]
 
