@@ -3,7 +3,6 @@ kind: Application
 metadata:
   name: namiview-app
   namespace: argocd
-  # Sync waves ensure this starts after infra if needed
   annotations:
     argocd.argoproj.io/sync-wave: "10"
 spec:
