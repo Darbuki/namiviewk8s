@@ -11,7 +11,7 @@ spec:
   source:
     repoURL: git@github.com:darbuki/namiviewk8s.git
     targetRevision: argo_deployment
-    path: apps/namiview  # <--- Points to the subfolder with your code
+    path: apps/namiview
   destination:
     server: https://kubernetes.default.svc
     namespace: namiview-app

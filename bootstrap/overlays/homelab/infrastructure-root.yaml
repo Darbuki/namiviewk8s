@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: git@github.com:darbuki/namiviewk8s.git
     targetRevision: argo_deployment
-    path: infrastructure # ArgoCD will find storage-app.yaml and vault-app.yaml here
+    path: infrastructure
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
