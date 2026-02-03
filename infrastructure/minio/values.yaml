@@ -15,7 +15,10 @@ auth:
 
 console:
   enabled: false
-  
+
+command: ["/bin/sh", "-c"]
+args: ["minio server /bitnami/minio/data --console-address :9001"]
+
 persistence:
   enabled: true
   size: 10Gi
