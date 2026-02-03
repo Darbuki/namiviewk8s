@@ -12,7 +12,8 @@ helmCharts:
       architecture: replicaset
       replicaCount: 3
       auth:
-        enabled: false
+        enabled: true
+        existingSecret: "mongo-auth-secret"
       persistence:
         enabled: true
         size: 3Gi
