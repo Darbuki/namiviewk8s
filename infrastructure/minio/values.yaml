@@ -14,8 +14,8 @@ auth:
   rootPasswordSecretKey: "minio-root-password"
 
 console:
-  enabled: true
-
+  enabled: false
+  
 persistence:
   enabled: true
   size: 10Gi
