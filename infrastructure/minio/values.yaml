@@ -16,9 +16,12 @@ auth:
 console:
   enabled: false
 service:
-  ports:
-    api: 9000
-    console: 9001
+  type: ClusterIP
+  extraPorts:
+    - name: console
+      port: 9001
+      targetPort: 9001
+      protocol: TCP
 command: ["/bin/sh", "-c"]
 args: ["minio server /bitnami/minio/data --console-address :9001"]
 
