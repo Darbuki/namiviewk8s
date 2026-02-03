@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: namiview-service
+  namespace: namiview-app
+spec:
+  selector:
+    app: namiview-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8501
+  type: ClusterIP
