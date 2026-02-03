@@ -1,0 +1,9 @@
+auth:
+  existingSecret: "minio-auth-secret"
+  rootUserSecretKey: "root-user"
+  rootPasswordSecretKey: "root-password"
+console:
+  enabled: true
+persistence:
+  enabled: true
+  size: 10Gi
