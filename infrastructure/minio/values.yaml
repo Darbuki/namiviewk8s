@@ -1,7 +1,7 @@
 auth:
   existingSecret: "minio-auth-secret"
-  rootUserSecretKey: "root-user"
-  rootPasswordSecretKey: "root-password"
+  rootUserSecretKey: "minio-root-user"
+  rootPasswordSecretKey: "minio-root-password"
 console:
   enabled: true
 persistence:
