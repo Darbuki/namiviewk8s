@@ -3,13 +3,14 @@ kind: Application
 metadata:
   name: cloudflare-stack
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
 spec:
   project: default
   source:
     repoURL: git@github.com:darbuki/namiviewk8s.git
     targetRevision: argo_deployment
     path: infrastructure/cloudflare
-    kustomize: {}
   destination:
     server: https://kubernetes.default.svc
     namespace: cloudflare
