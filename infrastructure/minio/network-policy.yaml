@@ -1,25 +1,25 @@
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: minio-ingress
-  namespace: namiview-infra
-spec:
-  podSelector:
-    matchLabels:
-      app.kubernetes.io/name: minio
-  policyTypes:
-  - Ingress
-  ingress:
-  - from:
-    - namespaceSelector:
-        matchLabels:
-          kubernetes.io/metadata.name: namiview-app
-    ports:
-    - protocol: TCP
-      port: 9000
-  - from:
-    - ipBlock:
-        cidr: 192.168.122.0/24
-    ports:
-    - protocol: TCP
-      port: 9001
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: minio-ingress
+#   namespace: namiview-infra
+# spec:
+#   podSelector:
+#     matchLabels:
+#       app.kubernetes.io/name: minio
+#   policyTypes:
+#   - Ingress
+#   ingress:
+#   - from:
+#     - namespaceSelector:
+#         matchLabels:
+#           kubernetes.io/metadata.name: namiview-app
+#     ports:
+#     - protocol: TCP
+#       port: 9000
+#   - from:
+#     - ipBlock:
+#         cidr: 192.168.122.0/24
+#     ports:
+#     - protocol: TCP
+#       port: 9001
