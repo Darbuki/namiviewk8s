@@ -1,0 +1,7 @@
+apiVersion: v2
+name: minio-wrapper
+version: 1.0.0
+dependencies:
+  - name: minio
+    version: 17.0.21
+    repository: oci://registry-1.docker.io/bitnamicharts
