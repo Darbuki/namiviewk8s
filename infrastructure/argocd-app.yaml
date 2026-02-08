@@ -1,14 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: apps-root
+  name: argocd-config
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: git@github.com:darbuki/namiviewk8s.git
     targetRevision: argo_deployment
-    path: apps 
+    path: infrastructure/argocd
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd

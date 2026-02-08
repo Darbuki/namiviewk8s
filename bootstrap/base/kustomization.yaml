@@ -15,19 +15,3 @@ patches:
         name: argocd-cm
       data:
         kustomize.buildOptions: --enable-helm
-
-  - target:
-      kind: Service
-      name: argocd-server
-    patch: |-
-      apiVersion: v1
-      kind: Service
-      metadata:
-        name: argocd-server
-      spec:
-        type: NodePort
-        ports:
-        - name: https
-          port: 443
-          targetPort: 8080
-          nodePort: 31311 
