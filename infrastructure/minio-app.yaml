@@ -9,9 +9,7 @@ spec:
     repoURL: git@github.com:darbuki/namiviewk8s.git
     targetRevision: argo_deployment
     path: infrastructure/minio
-    helm:
-      valueFiles:
-        - values.yaml
+    kustomize: {}
   destination:
     server: https://kubernetes.default.svc
     namespace: namiview-infra
@@ -19,3 +17,5 @@ spec:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
