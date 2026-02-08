@@ -31,9 +31,9 @@ service:
       port: 9001
       targetPort: 9001
 
-# Force the command to use the port
-command: ["/bin/sh", "-c"]
-args: ["minio server /bitnami/minio/data --console-address :9001"]
+# # Force the command to use the port
+# command: ["/bin/sh", "-c"]
+# args: ["minio server /bitnami/minio/data --console-address :9001"]
 
 auth:
   existingSecret: "minio-auth-secret"
