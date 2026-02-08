@@ -14,7 +14,7 @@ spec:
       targetRevision: 17.0.21
       helm:
         valueFiles:
-          - $values/infrastructure/minio/values.yaml
+          - values.yaml
     - repoURL: git@github.com:darbuki/namiviewk8s.git
       path: infrastructure/minio
       targetRevision: argo_deployment
