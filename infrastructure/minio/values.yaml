@@ -46,3 +46,7 @@ console:
 persistence:
   enabled: true
   size: 10Gi
+
+tls:
+  enabled: true
+  certificatesSecret: "minio-tls"
