@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     repoURL: git@github.com:darbuki/namiviewk8s.git
-    targetRevision: argo_deployment
+    targetRevision: main
     path: apps/namiview
   destination:
     server: https://kubernetes.default.svc
