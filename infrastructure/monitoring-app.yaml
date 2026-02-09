@@ -1,20 +1,22 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: infrastructure-root
+  name: monitoring-stack
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: git@github.com:darbuki/namiviewk8s.git
     targetRevision: promstack
-    path: infrastructure
-    directory:
-      recurse: true
+    path: infrastructure/monitoring
+    kustomize: {}
   destination:
     server: https://kubernetes.default.svc
-    namespace: argocd
+    namespace: monitoring
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
