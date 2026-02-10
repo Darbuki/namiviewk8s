@@ -26,21 +26,21 @@ grafana:
     userKey: admin-user
     passwordKey: admin-password
   
-  grafana.ini:
-    server:
-      protocol: https
-      cert_file: /etc/grafana/certs/tls.crt
-      cert_key: /etc/grafana/certs/tls.key
+  # grafana.ini:
+  #   server:
+  #     protocol: https
+  #     cert_file: /etc/grafana/certs/tls.crt
+  #     cert_key: /etc/grafana/certs/tls.key
   
-  extraVolumeMounts:
-    - name: certs
-      mountPath: /etc/grafana/certs
-      readOnly: true
+  # extraVolumeMounts:
+  #   - name: certs
+  #     mountPath: /etc/grafana/certs
+  #     readOnly: true
 
-  extraVolumes:
-    - name: certs
-      secret:
-        secretName: grafana-server-tls
+  # extraVolumes:
+  #   - name: certs
+  #     secret:
+  #       secretName: grafana-server-tls
 
   persistence:
     enabled: true
