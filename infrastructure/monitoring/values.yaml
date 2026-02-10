@@ -44,15 +44,11 @@ grafana:
       cert_file: /etc/grafana/certs/tls.crt
       cert_key: /etc/grafana/certs/tls.key
   
-  extraVolumeMounts:
-    - name: certs
+  extraSecretMounts:
+    - name: grafana-tls-certs
+      secretName: grafana-server-tls
       mountPath: /etc/grafana/certs
       readOnly: true
-
-  extraVolumes:
-    - name: certs
-      secret:
-        secretName: grafana-server-tls
 
   persistence:
     enabled: true
