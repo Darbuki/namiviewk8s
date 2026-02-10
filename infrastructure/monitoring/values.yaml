@@ -48,12 +48,14 @@ grafana:
       protocol: https
       domain: grafana.namiview.com
       root_url: https://grafana.namiview.com
+      cert_file: /etc/grafana/certs/tls.crt
+      cert_key: /etc/grafana/certs/tls.key
   
-  # extraSecretMounts:
-  #   - name: grafana-tls-certs
-  #     secretName: grafana-server-tls
-  #     mountPath: /etc/grafana/certs
-  #     readOnly: true
+  extraSecretMounts:
+    - name: grafana-tls-certs
+      secretName: grafana-server-tls
+      mountPath: /etc/grafana/certs
+      readOnly: true
 
   livenessProbe:
       httpGet:
