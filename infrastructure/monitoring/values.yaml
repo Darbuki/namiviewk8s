@@ -26,12 +26,14 @@ grafana:
     userKey: admin-user
     passwordKey: admin-password
   
+  # # --- NEW: HTTPS Configuration ---
   # grafana.ini:
   #   server:
   #     protocol: https
   #     cert_file: /etc/grafana/certs/tls.crt
   #     cert_key: /etc/grafana/certs/tls.key
   
+  # # --- NEW: Mount the Vault Secret ---
   # extraVolumeMounts:
   #   - name: certs
   #     mountPath: /etc/grafana/certs
@@ -41,6 +43,7 @@ grafana:
   #   - name: certs
   #     secret:
   #       secretName: grafana-server-tls
+  # # --------------------------------
 
   persistence:
     enabled: true
@@ -62,8 +65,8 @@ grafana:
   defaultDashboardsTimezone: utc
   service:
     type: ClusterIP
-    port: 443        # Optional: Change service port to 443 for "standard" feel
-    targetPort: 3000 # Grafana still listens on 3000 internally, just over HTTPS now
+    port: 443
+    targetPort: 3000
 
 alertmanager:
   enabled: true
