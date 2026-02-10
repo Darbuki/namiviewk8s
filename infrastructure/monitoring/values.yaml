@@ -50,6 +50,13 @@ grafana:
       mountPath: /etc/grafana/certs
       readOnly: true
 
+  livenessProbe:
+      httpGet:
+        scheme: HTTPS
+    readinessProbe:
+      httpGet:
+        scheme: HTTPS
+        
   persistence:
     enabled: true
     storageClassName: local-path
