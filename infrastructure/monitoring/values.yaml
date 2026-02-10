@@ -38,27 +38,30 @@ grafana:
     runAsGroup: 472
     runAsNonRoot: true
 
+  tls:
+    - secretName: grafana-server-tls
+      hosts:
+        - grafana.namiview.com
+    
   grafana.ini:
     server:
       protocol: https
-      http_port: 3000
-      cert_file: /etc/grafana/certs/tls.crt
-      cert_key: /etc/grafana/certs/tls.key
+      domain: grafana.namiview.com
+      root_url: https://grafana.namiview.com
   
-  extraSecretMounts:
-    - name: grafana-tls-certs
-      secretName: grafana-server-tls
-      mountPath: /etc/grafana/certs
-      readOnly: true
+  # extraSecretMounts:
+  #   - name: grafana-tls-certs
+  #     secretName: grafana-server-tls
+  #     mountPath: /etc/grafana/certs
+  #     readOnly: true
 
-  livenessProbe:
-      httpGet:
-        scheme: HTTPS
-        port: 3000
-  readinessProbe:
-      httpGet:
-        scheme: HTTPS
-        port: 3000
+  # livenessProbe:
+  #     httpGet:
+  #       scheme: HTTPS
+  # readinessProbe:
+  #     httpGet:
+  #       scheme: HTTPS
+
   persistence:
     enabled: true
     storageClassName: local-path
