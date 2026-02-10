@@ -53,10 +53,10 @@ grafana:
   livenessProbe:
       httpGet:
         scheme: HTTPS
-    readinessProbe:
+  readinessProbe:
       httpGet:
         scheme: HTTPS
-        
+
   persistence:
     enabled: true
     storageClassName: local-path
