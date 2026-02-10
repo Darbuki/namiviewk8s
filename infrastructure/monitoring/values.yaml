@@ -25,25 +25,34 @@ grafana:
     existingSecret: grafana-admin-secret
     userKey: admin-user
     passwordKey: admin-password
-  
-  # # --- NEW: HTTPS Configuration ---
-  # grafana.ini:
-  #   server:
-  #     protocol: https
-  #     cert_file: /etc/grafana/certs/tls.crt
-  #     cert_key: /etc/grafana/certs/tls.key
-  
-  # # --- NEW: Mount the Vault Secret ---
-  # extraVolumeMounts:
-  #   - name: certs
-  #     mountPath: /etc/grafana/certs
-  #     readOnly: true
 
-  # extraVolumes:
-  #   - name: certs
-  #     secret:
-  #       secretName: grafana-server-tls
-  # # --------------------------------
+  initChownData:
+    enabled: true
+
+  podSecurityContext:
+    fsGroup: 472
+    runAsUser: 472
+
+  containerSecurityContext:
+    runAsUser: 472
+    runAsGroup: 472
+    runAsNonRoot: true
+
+  grafana.ini:
+    server:
+      protocol: https
+      cert_file: /etc/grafana/certs/tls.crt
+      cert_key: /etc/grafana/certs/tls.key
+  
+  extraVolumeMounts:
+    - name: certs
+      mountPath: /etc/grafana/certs
+      readOnly: true
+
+  extraVolumes:
+    - name: certs
+      secret:
+        secretName: grafana-server-tls
 
   persistence:
     enabled: true
