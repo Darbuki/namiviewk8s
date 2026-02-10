@@ -27,7 +27,7 @@ grafana:
     passwordKey: admin-password
 
   initChownData:
-    enabled: true
+    enabled: false
 
   podSecurityContext:
     fsGroup: 472
