@@ -41,7 +41,7 @@ grafana:
   grafana.ini:
     server:
       protocol: https
-      http_port: 443
+      http_port: 3000
       cert_file: /etc/grafana/certs/tls.crt
       cert_key: /etc/grafana/certs/tls.key
   
@@ -54,11 +54,11 @@ grafana:
   livenessProbe:
       httpGet:
         scheme: HTTPS
-        port: 443
+        port: 3000
   readinessProbe:
       httpGet:
         scheme: HTTPS
-        port: 443
+        port: 3000
   persistence:
     enabled: true
     storageClassName: local-path
@@ -80,7 +80,7 @@ grafana:
   service:
     type: ClusterIP
     port: 443
-    targetPort: 443
+    targetPort: 3000
 
 alertmanager:
   enabled: true
