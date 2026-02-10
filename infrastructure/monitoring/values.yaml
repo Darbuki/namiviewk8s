@@ -54,11 +54,11 @@ grafana:
   livenessProbe:
       httpGet:
         scheme: HTTPS
-        port: 3000
+        port: 443
   readinessProbe:
       httpGet:
         scheme: HTTPS
-        port: 3000
+        port: 443
   persistence:
     enabled: true
     storageClassName: local-path
