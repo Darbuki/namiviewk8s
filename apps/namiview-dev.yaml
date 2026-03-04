@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: namiview-app
+  name: namiview-dev
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "10"
@@ -14,10 +14,10 @@ spec:
     helm:
       valueFiles:
         - values.yaml
-        - values-prod.yaml
+        - values-dev.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: namiview-app
+    namespace: namiview-dev
   syncPolicy:
     automated:
       prune: true
