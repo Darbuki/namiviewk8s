@@ -5,6 +5,13 @@ metadata:
   namespace: argocd
 spec:
   project: default
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: external-secrets-webhook
+      namespace: external-secrets
+      jsonPointers:
+        - /data
   source:
     chart: external-secrets
     repoURL: https://charts.external-secrets.io
