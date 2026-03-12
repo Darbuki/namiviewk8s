@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: namiview-dev-ui
+  name: namiview-app
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "10"
@@ -9,15 +9,15 @@ spec:
   project: default
   source:
     repoURL: https://github.com/Darbuki/namiview-charts.git
-    targetRevision: 26-decouple-ui-from-compute-react-fastapi-split
-    path: charts/namiview-ui
+    targetRevision: main
+    path: charts/namiview
     helm:
       valueFiles:
         - values.yaml
-        - values-dev.yaml
+        - values-prod.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: namiview-dev
+    namespace: namiview-app
   syncPolicy:
     automated:
       prune: true

@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: git@github.com:darbuki/namiviewk8s.git
-    targetRevision: main
+    targetRevision: 26-decouple-ui-from-compute-react-fastapi-split
     path: apps 
   destination:
     server: https://kubernetes.default.svc
