@@ -4,3 +4,4 @@ namiview/infra/minio/secret.yaml
 namiview/app/application_secrets.yaml
 AGENTS.md
 .mcp.json
+infrastructure/namiview.code-workspace
