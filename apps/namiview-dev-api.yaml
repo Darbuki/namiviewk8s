@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/Darbuki/namiview-charts.git
-    targetRevision: 26-decouple-ui-from-compute-react-fastapi-split
+    targetRevision: main
     path: charts/namiview-api
     helm:
       valueFiles:
