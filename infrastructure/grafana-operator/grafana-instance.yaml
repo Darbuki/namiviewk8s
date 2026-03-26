@@ -9,7 +9,9 @@ metadata:
     argocd.argoproj.io/sync-wave: "0"
 spec:
   external:
-    url: http://kube-prometheus-stack-grafana.monitoring.svc.cluster.local:3000
+    url: https://kube-prometheus-stack-grafana.monitoring.svc.cluster.local:443
     apiKey:
       name: grafana-operator-token
       key: SERVICE_ACCOUNT_TOKEN
+    tls:
+      insecureSkipVerify: true
