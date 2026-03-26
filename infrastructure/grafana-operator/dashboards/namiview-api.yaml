@@ -38,7 +38,7 @@ spec:
           "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto" },
           "title": "Unique Users",
           "type": "stat",
-          "targets": [{ "expr": "max(namiview_unique_users{namespace=~\"$namespace\"})", "legendFormat": "" }]
+          "targets": [{ "expr": "sum(max by (namespace) (namiview_unique_users{namespace=~\"$namespace\"}))", "legendFormat": "" }]
         },
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
@@ -54,7 +54,7 @@ spec:
           "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto" },
           "title": "Gallery Images",
           "type": "stat",
-          "targets": [{ "expr": "max(namiview_gallery_images{namespace=~\"$namespace\"})", "legendFormat": "" }]
+          "targets": [{ "expr": "sum(max by (namespace) (namiview_gallery_images{namespace=~\"$namespace\"}))", "legendFormat": "" }]
         },
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
