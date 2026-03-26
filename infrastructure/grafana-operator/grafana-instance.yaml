@@ -1,0 +1,17 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: Grafana
+metadata:
+  name: grafana-external
+  namespace: monitoring
+  labels:
+    dashboards: "grafana"
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  external:
+    url: https://kube-prometheus-stack-grafana.monitoring.svc.cluster.local:443
+    apiKey:
+      name: grafana-operator-token
+      key: SERVICE_ACCOUNT_TOKEN
+    tls:
+      insecureSkipVerify: true
