@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: grafana-operator-test
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: git@github.com:darbuki/namiviewk8s.git
+    targetRevision: 62-application-monitoring-improvement
+    path: infrastructure/grafana-operator
+    kustomize: {}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
