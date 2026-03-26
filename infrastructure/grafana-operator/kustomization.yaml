@@ -11,7 +11,7 @@ resources:
 helmCharts:
   - name: grafana-operator
     releaseName: grafana-operator
-    version: v5.22.2
-    repo: oci://ghcr.io/grafana/helm-charts
+    version: 5.22.2
+    repo: https://grafana.github.io/helm-charts
     includeCRDs: true
     valuesFile: values.yaml
