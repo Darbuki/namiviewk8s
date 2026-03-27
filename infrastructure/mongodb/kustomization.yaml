@@ -9,17 +9,4 @@ helmCharts:
     repo: oci://registry-1.docker.io/bitnamicharts
     version: 18.3.0
     releaseName: mongo
-    valuesInline:
-      architecture: replicaset
-      replicaCount: 3
-      auth:
-        enabled: true
-        existingSecret: "mongo-auth-secret"
-      persistence:
-        enabled: true
-        size: 3Gi
-      podAntiAffinityPreset: soft
-      resources:
-        requests:
-          cpu: 100m
-          memory: 512Mi
+    valuesFile: values.yaml

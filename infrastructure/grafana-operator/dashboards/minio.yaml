@@ -1,0 +1,17 @@
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: minio
+  namespace: monitoring
+  labels:
+    dashboards: "grafana"
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  folder: "Infrastructure"
+  source:
+    grafanaCom:
+      id: 13502   # MinIO — official dashboard
+      revision: 26

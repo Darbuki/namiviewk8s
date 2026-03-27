@@ -9,43 +9,4 @@ helmCharts:
     repo: https://helm.releases.hashicorp.com
     version: 0.32.0
     releaseName: vault
-    valuesInline:
-      server:
-        ha:
-          enabled: true
-          replicas: 3
-          raft:
-            enabled: true
-            setNodeId: true
-        dataStorage:
-          enabled: true
-          size: 3Gi
-        tolerations:
-          - key: "node-role.kubernetes.io/control-plane"
-            operator: "Exists"
-            effect: "NoSchedule"
-          - key: "node-role.kubernetes.io/master"
-            operator: "Exists"
-            effect: "NoSchedule"
-        affinity: |
-          podAntiAffinity:
-            requiredDuringSchedulingIgnoredDuringExecution:
-              - labelSelector:
-                  matchExpressions:
-                    - key: app.kubernetes.io/name
-                      operator: In
-                      values:
-                        - vault
-                topologyKey: "kubernetes.io/hostname"
-
-patches:
-  - target:
-      kind: Service
-      name: vault
-    patch: |-
-      - op: replace
-        path: /spec/type
-        value: NodePort
-      - op: add
-        path: /spec/ports/0/nodePort
-        value: 30820
+    valuesFile: values.yaml

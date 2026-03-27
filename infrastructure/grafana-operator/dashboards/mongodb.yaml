@@ -1,0 +1,17 @@
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: mongodb
+  namespace: monitoring
+  labels:
+    dashboards: "grafana"
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  folder: "Infrastructure"
+  source:
+    grafanaCom:
+      id: 2583    # MongoDB — community dashboard
+      revision: 2
