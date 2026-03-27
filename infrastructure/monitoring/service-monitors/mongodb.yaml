@@ -13,6 +13,6 @@ spec:
       app.kubernetes.io/name: mongodb
       app.kubernetes.io/component: metrics
   endpoints:
-    - port: metrics
+    - port: http-metrics
       interval: 30s
       path: /metrics
