@@ -7,6 +7,11 @@ resources:
   - external-secret.yaml
   - grafana-instance.yaml
   - dashboards/namiview-api.yaml
+  - dashboards/argocd.yaml
+  - dashboards/minio.yaml
+  - dashboards/mongodb.yaml
+  - dashboards/vault.yaml
+  - dashboards/cloudflare.yaml
 
 helmCharts:
   - name: grafana-operator

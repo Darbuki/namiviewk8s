@@ -1,0 +1,22 @@
+architecture: replicaset
+replicaCount: 3
+
+auth:
+  enabled: true
+  existingSecret: "mongo-auth-secret"
+
+persistence:
+  enabled: true
+  size: 3Gi
+
+podAntiAffinityPreset: soft
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 512Mi
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: false  # we manage our own ServiceMonitor via monitoring/

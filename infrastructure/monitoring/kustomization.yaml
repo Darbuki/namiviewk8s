@@ -6,6 +6,11 @@ namespace: monitoring
 resources:
   - external-secret.yaml
   - external-tls-secret.yaml
+  - service-monitors/argocd.yaml
+  - service-monitors/minio.yaml
+  - service-monitors/vault.yaml
+  - service-monitors/mongodb.yaml
+  - service-monitors/cloudflare.yaml
 
 helmCharts:
   - name: kube-prometheus-stack

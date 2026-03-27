@@ -1,0 +1,17 @@
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: argocd
+  namespace: monitoring
+  labels:
+    dashboards: "grafana"
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  folder: "Infrastructure"
+  source:
+    grafanaCom:
+      id: 14584   # ArgoCD — official community dashboard
+      revision: 1
