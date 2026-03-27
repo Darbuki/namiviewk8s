@@ -11,7 +11,6 @@ spec:
     matchLabels:
       dashboards: "grafana"
   folder: "Infrastructure"
-  source:
-    grafanaCom:
-      id: 13502   # MinIO — official dashboard
-      revision: 26
+  grafanaCom:
+    id: 13502   # MinIO — official dashboard
+    revision: 26
