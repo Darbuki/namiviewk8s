@@ -5,31 +5,12 @@ server:
     raft:
       enabled: true
       setNodeId: true
-    config: |
-      ui = true
-
-      listener "tcp" {
-        tls_disable    = 1
-        address        = "[::]:8200"
-        cluster_address = "[::]:8201"
-
-        telemetry {
-          unauthenticated_metrics_access = true
-        }
-      }
-
-      storage "raft" {
-        path = "/vault/data"
-      }
-
-      service_registration "kubernetes" {}
-
-      disable_mlock = true
-
-      telemetry {
-        prometheus_retention_time = "30s"
-        disable_hostname          = true
-      }
+  extraConfig: |
+    telemetry {
+      prometheus_retention_time = "30s"
+      disable_hostname          = true
+      unauthenticated_metrics_access = true
+    }
 
   dataStorage:
     enabled: true
