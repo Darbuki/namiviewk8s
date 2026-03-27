@@ -11,6 +11,7 @@ resources:
   - dashboards/minio.yaml
   - dashboards/mongodb.yaml
   - dashboards/vault.yaml
+  - dashboards/cloudflare.yaml
 
 helmCharts:
   - name: grafana-operator
