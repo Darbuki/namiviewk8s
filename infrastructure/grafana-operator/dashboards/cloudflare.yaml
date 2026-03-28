@@ -11,6 +11,9 @@ spec:
     matchLabels:
       dashboards: "grafana"
   folder: "Infrastructure"
+  datasources:
+    - inputName: "DS_PROMETHEUS"
+      datasourceName: "Prometheus"
   grafanaCom:
-    id: 15347   # Cloudflare Tunnel — community dashboard
-    revision: 1
+    id: 17838   # Cloudflare Tunnel (cloudflared) — matches tunnel daemon metrics
+    revision: 3

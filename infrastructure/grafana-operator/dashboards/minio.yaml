@@ -11,6 +11,9 @@ spec:
     matchLabels:
       dashboards: "grafana"
   folder: "Infrastructure"
+  datasources:
+    - inputName: "DS_PROMETHEUS"
+      datasourceName: "Prometheus"
   grafanaCom:
     id: 13502   # MinIO — official dashboard
     revision: 26

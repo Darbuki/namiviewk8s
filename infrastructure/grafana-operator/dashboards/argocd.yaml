@@ -11,6 +11,9 @@ spec:
     matchLabels:
       dashboards: "grafana"
   folder: "Infrastructure"
+  datasources:
+    - inputName: "DS_PROMETHEUS"
+      datasourceName: "Prometheus"
   grafanaCom:
     id: 14584   # ArgoCD — official community dashboard
     revision: 1
