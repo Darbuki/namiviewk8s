@@ -17,5 +17,8 @@ spec:
     - port: http
       interval: 30s
       path: /v1/sys/metrics
+      relabelings:
+        - targetLabel: job
+          replacement: vault      
       params:
         format: ["prometheus"]
