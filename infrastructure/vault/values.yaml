@@ -56,3 +56,7 @@ server:
 
 serverTelemetry:
   prometheusOperator: true
+telemetry:
+  prometheusRetentionTime: "12h"
+  disableHostname: true
+  unauthenticatedMetricsAccess: true
