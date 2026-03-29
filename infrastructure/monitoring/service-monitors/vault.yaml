@@ -19,6 +19,8 @@ spec:
       path: /v1/sys/metrics
       relabelings:
         - targetLabel: job
-          replacement: vault      
+          replacement: vault
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          targetLabel: instance          
       params:
         format: ["prometheus"]
