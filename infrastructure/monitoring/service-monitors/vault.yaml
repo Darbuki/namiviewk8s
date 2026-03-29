@@ -16,11 +16,6 @@ spec:
   endpoints:
     - port: http
       interval: 30s
-      path: /v1/sys/metrics
-      relabelings:
-        - targetLabel: job
-          replacement: vault
-        - sourceLabels: [__meta_kubernetes_pod_name]
-          targetLabel: instance          
+      path: /v1/sys/metrics        
       params:
         format: ["prometheus"]
