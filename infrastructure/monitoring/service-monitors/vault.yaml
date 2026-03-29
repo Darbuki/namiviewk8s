@@ -5,6 +5,7 @@ metadata:
   name: vault
   namespace: monitoring
 spec:
+  jobLabel: app.kubernetes.io/name
   namespaceSelector:
     matchNames:
       - vault
@@ -16,6 +17,6 @@ spec:
   endpoints:
     - port: http
       interval: 30s
-      path: /v1/sys/metrics        
+      path: /v1/sys/metrics
       params:
         format: ["prometheus"]
