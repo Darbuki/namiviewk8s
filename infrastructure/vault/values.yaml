@@ -16,7 +16,7 @@ server:
           telemetry {
             unauthenticated_metrics_access = true
             disable_hostname = true
-            prometheus_retention_time = "1h"
+            prometheus_retention_time = "12h"
           }
         }
 
@@ -27,7 +27,7 @@ server:
         service_registration "kubernetes" {}
 
         telemetry {
-          prometheus_retention_time = "1h"
+          prometheus_retention_time = "12h"
           disable_hostname         = true
         }
 
@@ -53,3 +53,6 @@ server:
                 values:
                   - vault
           topologyKey: "kubernetes.io/hostname"
+
+serverTelemetry:
+  prometheusOperator: true
