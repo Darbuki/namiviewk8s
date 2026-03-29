@@ -14,6 +14,8 @@ spec:
   datasources:
     - inputName: "DS_PROMETHEUS"
       datasourceName: "Prometheus"
+    - inputName: "DS_PROMXY"
+      datasourceName: "Prometheus"
   grafanaCom:
     id: 12904   # HashiCorp Vault — community dashboard
     revision: 2
