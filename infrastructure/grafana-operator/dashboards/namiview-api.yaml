@@ -325,7 +325,7 @@ spec:
         ]
       },
       "time": { "from": "now-24h", "to": "now" },
-      "title": "Namiview API",
+      "title": "Namiview All",
       "uid": "namiview-api-operator",
       "version": 1
     }
