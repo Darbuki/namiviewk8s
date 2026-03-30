@@ -12,6 +12,7 @@ resources:
   - dashboards/mongodb.yaml
   - dashboards/vault.yaml
   - dashboards/cloudflare.yaml
+  - dashboards/namiview-all.yaml
 
 helmCharts:
   - name: grafana-operator
