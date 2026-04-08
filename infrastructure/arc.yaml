@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: git@github.com:darbuki/namiviewk8s.git
-    targetRevision: 54-set-up-self-hosted-github-actions-runner-on-cluster
+    targetRevision: main
     path: infrastructure/arc
     kustomize: {}
   destination:
