@@ -4,6 +4,7 @@ kind: Kustomization
 namespace: vault
 resources:
   - cluster-store.yaml
+  - cluster-ops-rolebinding.yaml
 helmCharts:
   - name: vault
     repo: https://helm.releases.hashicorp.com

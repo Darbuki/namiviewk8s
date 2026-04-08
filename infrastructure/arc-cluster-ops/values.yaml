@@ -1,0 +1,21 @@
+# Overrides for gha-runner-scale-set v0.14.0
+# Runner image: ARC base + Python 3 + kubectl for cluster operations
+
+githubConfigUrl: "https://github.com/Darbuki/namiview"
+
+githubConfigSecret: arc-github-token-cluster-ops
+
+controllerServiceAccount:
+  name: arc-gha-rs-controller
+  namespace: arc-systems
+
+minRunners: 0
+maxRunners: 3
+
+template:
+  spec:
+    serviceAccountName: cluster-ops
+    containers:
+      - name: runner
+        image: darbuki/arc-cluster-ops:latest
+        command: ["/home/runner/run.sh"]
