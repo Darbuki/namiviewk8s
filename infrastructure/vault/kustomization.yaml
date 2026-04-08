@@ -4,7 +4,6 @@ kind: Kustomization
 namespace: vault
 resources:
   - cluster-store.yaml
-  - vault-operator-sa.yaml
 helmCharts:
   - name: vault
     repo: https://helm.releases.hashicorp.com

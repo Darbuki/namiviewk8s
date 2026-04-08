@@ -5,6 +5,7 @@ namespace: arc-runners
 
 resources:
   - external-secret.yaml
+  - rbac.yaml
 
 helmCharts:
   - name: gha-runner-scale-set

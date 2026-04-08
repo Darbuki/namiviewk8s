@@ -14,6 +14,7 @@ maxRunners: 3
 
 template:
   spec:
+    serviceAccountName: cluster-ops
     containers:
       - name: runner
         image: darbuki/arc-cluster-ops:latest
