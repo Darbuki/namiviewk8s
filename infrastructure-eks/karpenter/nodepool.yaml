@@ -1,0 +1,53 @@
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: default
+spec:
+  template:
+    metadata:
+      labels:
+        role: workload
+    spec:
+      requirements:
+        # On-demand only — predictable costs for a small project
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["on-demand"]
+
+        # TODO: Revisit instance types, nodeSelector strategy, taints,
+        # and whether API pods should exclusively run on Karpenter nodes.
+        # Consider t3a (cheaper AMD), spot instances, and proper resource profiling.
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values:
+            - t3.medium
+            - t3.large
+
+        # Match VPC AZs
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values:
+            - eu-west-1a
+            - eu-west-1b
+
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default
+
+      # Don't schedule system workloads on Karpenter nodes
+      # (ArgoCD, Karpenter itself, CoreDNS stay on managed node group)
+      taints: []
+
+  # Safety limits — Karpenter will never exceed this total
+  limits:
+    cpu: "16"
+    memory: "64Gi"
+
+  # Consolidation — remove/replace underutilized nodes
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 60s
+
+  # Weight determines priority when multiple NodePools exist (higher = preferred)
+  weight: 50
