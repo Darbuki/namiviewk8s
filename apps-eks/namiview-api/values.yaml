@@ -49,9 +49,13 @@ app:
     host: namiview.pj6elop.mongodb.net
     appName: namiview
 
-# Disable features not yet set up on EKS
 metrics:
-  enabled: false
+  enabled: true
+  port: 9090
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
 grafanaDashboard:
   enabled: false
 networkPolicy:
