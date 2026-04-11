@@ -29,6 +29,10 @@ vault:
 app:
   googleRedirectUri: "https://eks.namiview.com/api/auth/callback"
   corsOrigins: "https://eks.namiview.com"
+  mongo:
+    atlas: true
+    host: namiview.pj6elop.mongodb.net
+    appName: namiview
 
 # Disable features not yet set up on EKS
 metrics:
