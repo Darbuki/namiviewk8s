@@ -1,0 +1,41 @@
+replicaCount: 2
+
+image:
+  tag: "dev-69-11-04-864cb2e"
+
+storage:
+  backend: s3
+  s3:
+    bucket: namiview-prod-bucket
+    region: eu-west-1
+
+serviceAccount:
+  create: true
+  name: namiview-api
+  annotations:
+    # TODO: Replace with dynamic approach (GitOps Bridge, SSM, CI-driven outputs)
+    eks.amazonaws.com/role-arn: "arn:aws:iam::015301735477:role/namiview-prod-namiview-api"
+
+vault:
+  clusterSecretStore: aws-secrets-manager
+  refreshInterval: "1h"
+  paths:
+    mongodb: namiview-prod/mongodb
+    mongodbDb: namiview-prod/mongodb
+    dockerReg: namiview-prod/dockerhub
+    googleCreds: namiview-prod/google-creds
+    jwt: namiview-prod/jwt
+
+app:
+  googleRedirectUri: "https://eks.namiview.com/api/auth/callback"
+  corsOrigins: "https://eks.namiview.com"
+
+# Disable features not yet set up on EKS
+metrics:
+  enabled: false
+grafanaDashboard:
+  enabled: false
+networkPolicy:
+  enabled: false
+PodDisruptionBudget:
+  enabled: false
