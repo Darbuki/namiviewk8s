@@ -16,6 +16,20 @@ serviceAccount:
     # TODO: Replace with dynamic approach (GitOps Bridge, SSM, CI-driven outputs)
     eks.amazonaws.com/role-arn: "arn:aws:iam::015301735477:role/namiview-prod-namiview-api"
 
+ingress:
+  enabled: true
+  className: alb
+  host: eks.namiview.com
+  path: /api
+  pathType: Prefix
+  annotations:
+    alb.ingress.kubernetes.io/group.name: eks-namiview
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/healthcheck-path: /api/health
+
 vault:
   clusterSecretStore: aws-secrets-manager
   refreshInterval: "1h"
