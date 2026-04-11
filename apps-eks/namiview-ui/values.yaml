@@ -1,0 +1,10 @@
+replicaCount: 2
+
+image:
+  tag: "prod-26-03-81660ec"
+
+vault:
+  clusterSecretStore: aws-secrets-manager
+  refreshInterval: "1h"
+  paths:
+    dockerReg: namiview-prod/dockerhub

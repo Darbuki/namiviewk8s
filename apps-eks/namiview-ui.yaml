@@ -5,10 +5,17 @@ metadata:
   namespace: argocd
 spec:
   project: namiview
-  source:
-    repoURL: https://github.com/Darbuki/namiviewk8s.git
-    targetRevision: 69-set-up-namiview-on-aws
-    path: apps-eks/namiview-ui
+  sources:
+    - repoURL: https://github.com/Darbuki/namiview-charts.git
+      targetRevision: main
+      path: charts/namiview-ui
+      helm:
+        valueFiles:
+          - values.yaml
+          - $values/apps-eks/namiview-ui/values.yaml
+    - repoURL: https://github.com/Darbuki/namiviewk8s.git
+      targetRevision: 69-set-up-namiview-on-aws
+      ref: values
   destination:
     server: https://kubernetes.default.svc
     namespace: namiview
