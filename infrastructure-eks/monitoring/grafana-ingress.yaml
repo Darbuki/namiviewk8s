@@ -13,7 +13,7 @@ metadata:
 spec:
   ingressClassName: alb
   rules:
-    - host: grafana.eks.namiview.com
+    - host: grafana-eks.namiview.com
       http:
         paths:
           - path: /

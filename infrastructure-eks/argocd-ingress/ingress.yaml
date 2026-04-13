@@ -14,7 +14,7 @@ metadata:
 spec:
   ingressClassName: alb
   rules:
-    - host: argocd.eks.namiview.com
+    - host: argocd-eks.namiview.com
       http:
         paths:
           - path: /
