@@ -9,7 +9,7 @@ resources:
     memory: 256Mi
   limits:
     cpu: 1000m
-    memory: 2Gi
+    memory: 4Gi
 
 # Schedule on Karpenter workload nodes (t3.large, 8GB) not system nodes
 nodeSelector:
