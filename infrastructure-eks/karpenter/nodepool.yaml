@@ -9,13 +9,11 @@ spec:
         role: workload
     spec:
       requirements:
-        # Spot preferred, on-demand fallback — 60-70% cheaper
-        # SQS interruption queue handles graceful draining
+        # On-demand for now — spot requires service-linked role (TODO)
         - key: karpenter.sh/capacity-type
           operator: In
-          values: ["spot", "on-demand"]
+          values: ["on-demand"]
 
-        # Wider selection improves spot availability and pricing
         - key: node.kubernetes.io/instance-type
           operator: In
           values:
