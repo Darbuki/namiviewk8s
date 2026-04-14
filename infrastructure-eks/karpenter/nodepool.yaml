@@ -9,19 +9,20 @@ spec:
         role: workload
     spec:
       requirements:
-        # On-demand only — predictable costs for a small project
+        # Spot preferred, on-demand fallback — 60-70% cheaper
+        # SQS interruption queue handles graceful draining
         - key: karpenter.sh/capacity-type
           operator: In
-          values: ["on-demand"]
+          values: ["spot", "on-demand"]
 
-        # TODO: Revisit instance types, nodeSelector strategy, taints,
-        # and whether API pods should exclusively run on Karpenter nodes.
-        # Consider t3a (cheaper AMD), spot instances, and proper resource profiling.
+        # Wider selection improves spot availability and pricing
         - key: node.kubernetes.io/instance-type
           operator: In
           values:
             - t3.medium
             - t3.large
+            - t3a.medium
+            - t3a.large
 
         # Match VPC AZs
         - key: topology.kubernetes.io/zone

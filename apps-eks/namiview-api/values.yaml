@@ -9,7 +9,11 @@ resources:
     memory: 512Mi
   limits:
     cpu: 1000m
-    memory: 3Gi
+    memory: 2Gi
+
+# Schedule on Karpenter workload nodes (t3.large, 8GB) not system nodes
+nodeSelector:
+  role: workload
 
 storage:
   backend: s3
