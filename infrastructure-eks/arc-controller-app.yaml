@@ -7,11 +7,16 @@ metadata:
     argocd.argoproj.io/sync-wave: "2"
 spec:
   project: namiview
-  source:
-    repoURL: https://github.com/Darbuki/namiviewk8s.git
-    targetRevision: 69-set-up-namiview-on-aws
-    path: infrastructure-eks/arc-controller
-    kustomize: {}
+  sources:
+    - repoURL: https://github.com/Darbuki/namiviewk8s.git
+      targetRevision: 69-set-up-namiview-on-aws
+      ref: values
+    - repoURL: ghcr.io/actions/actions-runner-controller-charts
+      chart: gha-runner-scale-set-controller
+      targetRevision: 0.14.0
+      helm:
+        valueFiles:
+          - $values/infrastructure-eks/arc-controller/values.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: arc-systems
