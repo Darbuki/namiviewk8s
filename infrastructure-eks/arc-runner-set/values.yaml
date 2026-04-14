@@ -9,7 +9,7 @@ githubConfigSecret: arc-github-token
 # Explicit reference — needed because ArgoCD renders templates offline
 # and can't auto-discover the controller deployment
 controllerServiceAccount:
-  name: arc-gha-rs-controller
+  name: arc-controller-gha-rs-controller
   namespace: arc-systems
 
 minRunners: 0
