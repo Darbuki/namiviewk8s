@@ -4,7 +4,7 @@
 githubConfigUrl: "https://github.com/Darbuki/namiview-terraform"
 
 # K8s secret created by ExternalSecret from AWS Secrets Manager
-githubConfigSecret: arc-github-token
+githubConfigSecret: arc-github-token-terraform
 
 # Explicit reference — needed because ArgoCD renders templates offline
 # and can't auto-discover the controller deployment
