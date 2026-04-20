@@ -5,3 +5,4 @@ namiview/app/application_secrets.yaml
 AGENTS.md
 .mcp.json
 infrastructure/namiview.code-workspace
+docs/ci-cd-plan.md

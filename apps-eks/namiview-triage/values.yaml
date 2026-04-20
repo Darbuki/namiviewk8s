@@ -1,0 +1,32 @@
+# EKS-specific overrides for the namiview-triage chart.
+# Structure in the chart; deployment choices here.
+
+image:
+  # Chart default is `:latest` which is fine while we're iterating; swap to
+  # a pinned `:sha-<short>` once the agent stabilises.
+  tag: latest
+
+app:
+  githubRepo: Darbuki/namiview
+
+externalSecrets:
+  # AWS Secrets Manager via the cluster-wide ClusterSecretStore that
+  # `external-secrets` ships (see infrastructure-eks/eso-resources).
+  clusterSecretStore: aws-secrets-manager
+  paths:
+    anthropic: namiview-prod/anthropic-api-key    # JSON secret containing key ANTHROPIC_API_KEY
+    github: namiview-prod/triage-agent-github-pat # JSON secret containing key GITHUB_TOKEN
+
+# AlertmanagerConfig requires the Alertmanager CR to have
+# `alertmanagerConfigMatcherStrategy.type: None` — patched in
+# infrastructure-eks/monitoring-app.yaml.
+alertmanagerConfig:
+  enabled: true
+
+# Schedule on Karpenter workload nodes — keeps agents off system nodes.
+nodeSelector:
+  role: workload
+
+# Wait on NetworkPolicy until we've seen traffic patterns in prod.
+networkPolicy:
+  enabled: false
