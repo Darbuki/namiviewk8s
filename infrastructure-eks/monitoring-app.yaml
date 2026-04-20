@@ -55,6 +55,13 @@ spec:
         alertmanager:
           enabled: true
           alertmanagerSpec:
+            # Trust matchers in AlertmanagerConfig CRDs as written, rather than
+            # auto-scoping them to the CRD's own namespace. Required so that a
+            # config living in (e.g.) namiview-agents can route cluster-wide
+            # alerts. Default `OnNamespace` would silently inject a
+            # `namespace=<crd-ns>` matcher and nothing would ever match.
+            alertmanagerConfigMatcherStrategy:
+              type: None
             storage:
               volumeClaimTemplate:
                 spec:
