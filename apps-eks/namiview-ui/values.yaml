@@ -20,3 +20,6 @@ vault:
   refreshInterval: "1h"
   paths:
     dockerReg: namiview-prod/dockerhub
+
+autoscaling:
+  enabled: true

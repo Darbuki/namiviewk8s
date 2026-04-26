@@ -1,0 +1,235 @@
+# KEDA dashboard, auto-loaded by the kube-prometheus-stack Grafana sidecar.
+# The sidecar scans every namespace for ConfigMaps with the label
+# `grafana_dashboard: "1"` and provisions them into Grafana.
+#
+# Metrics referenced here come from the KEDA operator + metricServer
+# Prometheus exporters (enabled via prometheus.{operator,metricServer}.serviceMonitor
+# in keda-app.yaml). Names are stable in KEDA 2.16+.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keda-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  keda-overview.json: |
+    {
+      "annotations": { "list": [] },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 1,
+      "links": [],
+      "panels": [
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+          "id": 100,
+          "title": "Overview",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": { "steps": [{ "color": "blue", "value": null }] },
+              "mappings": []
+            }
+          },
+          "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 },
+          "id": 1,
+          "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto" },
+          "title": "ScaledObjects",
+          "type": "stat",
+          "targets": [{ "expr": "count(count by (scaledObject, exported_namespace) (keda_scaler_metrics_value{exported_namespace=~\"$namespace\"}))", "legendFormat": "" }]
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 1 }] },
+              "mappings": []
+            }
+          },
+          "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 },
+          "id": 2,
+          "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto" },
+          "title": "Active Scalers (now)",
+          "type": "stat",
+          "targets": [{ "expr": "sum(keda_scaler_active{exported_namespace=~\"$namespace\"})", "legendFormat": "" }]
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 0.01 }] },
+              "mappings": [],
+              "unit": "ops"
+            }
+          },
+          "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
+          "id": 3,
+          "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto" },
+          "title": "Scaler Errors / sec (5m)",
+          "type": "stat",
+          "targets": [{ "expr": "sum(rate(keda_scaler_errors_total{exported_namespace=~\"$namespace\"}[5m]))", "legendFormat": "" }]
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": { "steps": [{ "color": "purple", "value": null }] },
+              "mappings": []
+            }
+          },
+          "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
+          "id": 4,
+          "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto" },
+          "title": "KEDA Version",
+          "type": "stat",
+          "targets": [{ "expr": "max(keda_build_info)", "legendFormat": "{{version}}" }]
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+          "id": 101,
+          "title": "Per-ScaledObject Activity",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": {
+            "defaults": {
+              "custom": { "drawStyle": "line", "fillOpacity": 15, "lineWidth": 2, "pointSize": 5, "showPoints": "auto", "spanNulls": false },
+              "color": { "mode": "palette-classic" }
+            }
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+          "id": 5,
+          "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "title": "Scaler Metric Values (raw — interpret per scaler type)",
+          "description": "For the memory scaler, this is the absolute value KEDA fetched (not a percentage). The HPA does the percentage conversion using the pod's resources.requests.memory.",
+          "type": "timeseries",
+          "targets": [
+            { "expr": "keda_scaler_metrics_value{exported_namespace=~\"$namespace\", scaledObject=~\"$scaledobject\"}", "legendFormat": "{{scaledObject}} / {{scaler}} / {{metric}}" }
+          ]
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": {
+            "defaults": {
+              "custom": { "drawStyle": "line", "fillOpacity": 15, "lineWidth": 2, "pointSize": 5, "showPoints": "auto", "spanNulls": false, "stacking": { "mode": "none" } },
+              "min": 0
+            }
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+          "id": 6,
+          "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "title": "HPA Replicas (current / desired / min / max)",
+          "description": "KEDA generates an HPA per ScaledObject; these are kube-state-metrics readings on the resulting HPA.",
+          "type": "timeseries",
+          "targets": [
+            { "expr": "kube_horizontalpodautoscaler_status_current_replicas{namespace=~\"$namespace\", horizontalpodautoscaler=~\"keda-hpa-.+\"}", "legendFormat": "{{horizontalpodautoscaler}} current" },
+            { "expr": "kube_horizontalpodautoscaler_status_desired_replicas{namespace=~\"$namespace\", horizontalpodautoscaler=~\"keda-hpa-.+\"}", "legendFormat": "{{horizontalpodautoscaler}} desired" },
+            { "expr": "kube_horizontalpodautoscaler_spec_min_replicas{namespace=~\"$namespace\", horizontalpodautoscaler=~\"keda-hpa-.+\"}", "legendFormat": "{{horizontalpodautoscaler}} min" },
+            { "expr": "kube_horizontalpodautoscaler_spec_max_replicas{namespace=~\"$namespace\", horizontalpodautoscaler=~\"keda-hpa-.+\"}", "legendFormat": "{{horizontalpodautoscaler}} max" }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+          "id": 102,
+          "title": "Errors & Latency",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": {
+            "defaults": {
+              "custom": { "drawStyle": "line", "fillOpacity": 30, "lineWidth": 2, "pointSize": 5, "showPoints": "auto", "spanNulls": false },
+              "unit": "ops",
+              "color": { "mode": "palette-classic" }
+            }
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
+          "id": 7,
+          "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "title": "Scaler Errors by ScaledObject",
+          "description": "Counts when a scaler poll fails (e.g. Prometheus unreachable, IAM token expired, queue API throttled). A non-zero rate here means autoscaling is silently degraded — the HPA will keep using the last known value or fall back to minReplicas.",
+          "type": "timeseries",
+          "targets": [
+            { "expr": "sum by (exported_namespace, scaledObject, scaler) (rate(keda_scaler_errors_total{exported_namespace=~\"$namespace\"}[$__rate_interval]))", "legendFormat": "{{exported_namespace}}/{{scaledObject}} ({{scaler}})" }
+          ]
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": {
+            "defaults": {
+              "custom": { "drawStyle": "line", "fillOpacity": 10, "lineWidth": 2, "pointSize": 5, "showPoints": "auto", "spanNulls": false },
+              "unit": "s"
+            }
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
+          "id": 8,
+          "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "title": "Operator Reconcile Latency (p50 / p95 / p99)",
+          "type": "timeseries",
+          "targets": [
+            { "expr": "histogram_quantile(0.50, sum by (le) (rate(keda_internal_scale_loop_latency_seconds_bucket[$__rate_interval])))", "legendFormat": "p50" },
+            { "expr": "histogram_quantile(0.95, sum by (le) (rate(keda_internal_scale_loop_latency_seconds_bucket[$__rate_interval])))", "legendFormat": "p95" },
+            { "expr": "histogram_quantile(0.99, sum by (le) (rate(keda_internal_scale_loop_latency_seconds_bucket[$__rate_interval])))", "legendFormat": "p99" }
+          ]
+        }
+      ],
+      "refresh": "30s",
+      "schemaVersion": 39,
+      "tags": ["keda", "autoscaling", "platform"],
+      "templating": {
+        "list": [
+          {
+            "current": { "selected": false, "text": "Prometheus", "value": "prometheus" },
+            "hide": 0,
+            "includeAll": false,
+            "name": "datasource",
+            "options": [],
+            "query": "prometheus",
+            "refresh": 1,
+            "type": "datasource"
+          },
+          {
+            "current": { "selected": true, "text": "All", "value": "$__all" },
+            "datasource": { "type": "prometheus", "uid": "${datasource}" },
+            "definition": "label_values(keda_scaler_metrics_value, exported_namespace)",
+            "hide": 0,
+            "includeAll": true,
+            "multi": true,
+            "name": "namespace",
+            "query": { "query": "label_values(keda_scaler_metrics_value, exported_namespace)", "refId": "ns" },
+            "refresh": 2,
+            "sort": 1,
+            "type": "query"
+          },
+          {
+            "current": { "selected": true, "text": "All", "value": "$__all" },
+            "datasource": { "type": "prometheus", "uid": "${datasource}" },
+            "definition": "label_values(keda_scaler_metrics_value{exported_namespace=~\"$namespace\"}, scaledObject)",
+            "hide": 0,
+            "includeAll": true,
+            "multi": true,
+            "name": "scaledobject",
+            "query": { "query": "label_values(keda_scaler_metrics_value{exported_namespace=~\"$namespace\"}, scaledObject)", "refId": "so" },
+            "refresh": 2,
+            "sort": 1,
+            "type": "query"
+          }
+        ]
+      },
+      "time": { "from": "now-1h", "to": "now" },
+      "title": "KEDA Overview",
+      "uid": "keda-overview",
+      "version": 1
+    }

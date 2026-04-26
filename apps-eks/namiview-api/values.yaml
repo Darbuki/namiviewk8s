@@ -74,3 +74,8 @@ networkPolicy:
   enabled: false
 PodDisruptionBudget:
   enabled: false
+
+# KEDA autoscaling — chart defaults memory@70%, min=1, max=5. Once we have
+# a Prometheus RPS query worth scaling on, swap the trigger here.
+autoscaling:
+  enabled: true
