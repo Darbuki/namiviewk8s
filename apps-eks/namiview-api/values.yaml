@@ -6,7 +6,12 @@ image:
 resources:
   requests:
     cpu: 250m
-    memory: 256Mi
+    # Bumped from 256Mi: idle ~250Mi pegged the HPA at ~97% utilization vs
+    # the 70% memory target, fanning out to maxReplicas immediately. With
+    # 512Mi requests, idle sits at ~49% — leaves real headroom for scaling
+    # to actually reflect load. Revisit once we move to a Prometheus RPS
+    # trigger (then memory headroom doesn't matter for autoscaling).
+    memory: 512Mi
   limits:
     cpu: 1000m
     memory: 4Gi
@@ -79,3 +84,6 @@ PodDisruptionBudget:
 # a Prometheus RPS query worth scaling on, swap the trigger here.
 autoscaling:
   enabled: true
+  # Tighten blast radius while we're still on the memory scaler. Bumped back
+  # up once we switch to a real signal (Prometheus RPS).
+  maxReplicas: 3
