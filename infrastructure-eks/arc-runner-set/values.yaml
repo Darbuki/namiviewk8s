@@ -1,0 +1,16 @@
+# Overrides for gha-runner-scale-set v0.14.0
+# Defaults: helm show values oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set --version 0.14.0
+
+githubConfigUrl: "https://github.com/Darbuki/namiview"
+
+# K8s secret created by ExternalSecret from AWS Secrets Manager
+githubConfigSecret: arc-github-token
+
+# Explicit reference — needed because ArgoCD renders templates offline
+# and can't auto-discover the controller deployment
+controllerServiceAccount:
+  name: arc-controller-gha-rs-controller
+  namespace: arc-systems
+
+minRunners: 0
+maxRunners: 3
