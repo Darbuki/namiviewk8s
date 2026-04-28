@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/Darbuki/namiviewk8s.git
-    targetRevision: 69-set-up-namiview-on-aws
+    targetRevision: main
     path: infrastructure-eks
   destination:
     server: https://kubernetes.default.svc

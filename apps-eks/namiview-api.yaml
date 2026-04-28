@@ -7,14 +7,14 @@ spec:
   project: namiview
   sources:
     - repoURL: https://github.com/Darbuki/namiview-charts.git
-      targetRevision: 69-set-up-namiview-on-aws
+      targetRevision: main
       path: charts/namiview-api
       helm:
         valueFiles:
           - values.yaml
           - $values/apps-eks/namiview-api/values.yaml
     - repoURL: https://github.com/Darbuki/namiviewk8s.git
-      targetRevision: 69-set-up-namiview-on-aws
+      targetRevision: main
       ref: values
   destination:
     server: https://kubernetes.default.svc

@@ -10,14 +10,14 @@ spec:
   #   - values source: this repo (environment-specific overrides)
   sources:
     - repoURL: https://github.com/Darbuki/namiview-charts.git
-      targetRevision: 69-set-up-namiview-on-aws
+      targetRevision: main
       path: charts/namiview-triage
       helm:
         valueFiles:
           - values.yaml
           - $values/apps-eks/namiview-triage/values.yaml
     - repoURL: https://github.com/Darbuki/namiviewk8s.git
-      targetRevision: 69-set-up-namiview-on-aws
+      targetRevision: main
       ref: values
   destination:
     server: https://kubernetes.default.svc

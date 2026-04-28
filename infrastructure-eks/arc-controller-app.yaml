@@ -9,7 +9,7 @@ spec:
   project: namiview
   sources:
     - repoURL: https://github.com/Darbuki/namiviewk8s.git
-      targetRevision: 69-set-up-namiview-on-aws
+      targetRevision: main
       ref: values
     - repoURL: ghcr.io/actions/actions-runner-controller-charts
       chart: gha-runner-scale-set-controller
