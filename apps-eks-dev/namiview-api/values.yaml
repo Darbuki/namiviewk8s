@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  tag: "dev-eks-placeholder"
+  tag: "eks-443adaa"
 
 resources:
   requests:
