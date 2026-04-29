@@ -58,6 +58,7 @@ app:
     atlas: true
     host: namiview.pj6elop.mongodb.net
     appName: namiview-dev
+    collection: "dev-images"
 
 metrics:
   enabled: true
