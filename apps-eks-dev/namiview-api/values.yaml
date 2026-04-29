@@ -1,0 +1,78 @@
+replicaCount: 1
+
+image:
+  tag: "dev-eks-placeholder"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+
+nodeSelector:
+  role: workload
+
+storage:
+  backend: s3
+  s3:
+    bucket: namiview-dev-bucket
+    region: eu-west-1
+
+serviceAccount:
+  create: true
+  name: namiview-api
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::015301735477:role/namiview-prod-namiview-api-dev"
+
+ingress:
+  enabled: true
+  className: alb
+  host: dev-eks.namiview.com
+  path: /api
+  pathType: Prefix
+  annotations:
+    alb.ingress.kubernetes.io/group.name: eks-namiview
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/healthcheck-path: /api/health
+    alb.ingress.kubernetes.io/target-group-attributes: stickiness.enabled=true,stickiness.lb_cookie.duration_seconds=3600
+
+vault:
+  clusterSecretStore: aws-secrets-manager
+  refreshInterval: "1h"
+  paths:
+    mongodb: namiview-prod/mongodb
+    mongodbDb: namiview-prod/mongodb
+    dockerReg: namiview-prod/dockerhub
+    googleCreds: namiview-prod/google-creds
+    jwt: namiview-prod/jwt
+
+app:
+  googleRedirectUri: "https://dev-eks.namiview.com/api/auth/callback"
+  corsOrigins: "https://dev-eks.namiview.com"
+  mongo:
+    atlas: true
+    host: namiview.pj6elop.mongodb.net
+    appName: namiview-dev
+
+metrics:
+  enabled: true
+  port: 9090
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+
+grafanaDashboard:
+  enabled: false
+networkPolicy:
+  enabled: false
+PodDisruptionBudget:
+  enabled: false
+
+autoscaling:
+  enabled: false
