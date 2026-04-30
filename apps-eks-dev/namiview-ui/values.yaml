@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  tag: "dev-eks-2b40b62"
+  tag: "dev-eks-58b2685"
 
 ingress:
   enabled: true
