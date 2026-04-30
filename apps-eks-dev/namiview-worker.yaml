@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: namiview-worker-dev
+  namespace: argocd
+spec:
+  project: namiview
+  sources:
+    - repoURL: https://github.com/Darbuki/namiview-charts.git
+      targetRevision: 86-async-job-queue-sqs-worker-5-variant-previewsave-flow
+      path: charts/namiview-worker
+      helm:
+        valueFiles:
+          - values.yaml
+          - $values/apps-eks-dev/namiview-worker/values.yaml
+    - repoURL: https://github.com/Darbuki/namiviewk8s.git
+      targetRevision: 88-bootstrap-dev-environment-in-eks-cluster-shape-2
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: namiview-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
