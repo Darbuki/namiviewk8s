@@ -59,6 +59,10 @@ app:
     host: namiview.pj6elop.mongodb.net
     appName: namiview-dev
     collection: "dev-images"
+    jobsCollection: "dev-jobs"
+
+jobs:
+  queueUrl: "https://sqs.eu-west-1.amazonaws.com/015301735477/namiview-prod-dev-jobs"
 
 metrics:
   enabled: true
