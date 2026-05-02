@@ -15,7 +15,7 @@ spec:
         valueFiles:
           - $values/infrastructure-eks/loki/values.yaml
     - repoURL: https://github.com/Darbuki/namiviewk8s.git
-      targetRevision: main
+      targetRevision: 88-bootstrap-dev-environment-in-eks-cluster-shape-2
       ref: values
   destination:
     server: https://kubernetes.default.svc
