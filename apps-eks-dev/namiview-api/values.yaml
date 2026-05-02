@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  tag: "dev-eks-93d57ea"
+  tag: "dev-eks-db8aad2"
 
 resources:
   requests:
