@@ -7,7 +7,7 @@ spec:
   project: namiview
   sources:
     - repoURL: https://github.com/Darbuki/namiview-charts.git
-      targetRevision: main
+      targetRevision: 86-async-job-queue-sqs-worker-5-variant-previewsave-flow
       path: charts/namiview-api
       helm:
         valueFiles:
