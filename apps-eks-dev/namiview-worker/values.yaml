@@ -1,8 +1,7 @@
 replicaCount: 1
-
 image:
-  tag: "dev-eks-2d62e4e"
-
+  tag: "dev-eks-9f6db3a"
+  repository: darbuki/namiview-worker
 resources:
   requests:
     cpu: 512m
@@ -10,31 +9,25 @@ resources:
   limits:
     cpu: 2000m
     memory: 4Gi
-
 nodeSelector:
   role: workload
-
 serviceAccount:
   create: true
   name: namiview-worker
   annotations:
     eks.amazonaws.com/role-arn: "arn:aws:iam::015301735477:role/namiview-prod-namiview-worker-dev"
-
 storage:
   s3:
     bucket: namiview-dev-bucket
     region: eu-west-1
-
 jobs:
   queueUrl: "https://sqs.eu-west-1.amazonaws.com/015301735477/namiview-prod-dev-jobs"
-
 app:
   mongo:
     atlas: true
     host: namiview.pj6elop.mongodb.net
     appName: namiview-dev
     jobsCollection: "dev-jobs"
-
 vault:
   clusterSecretStore: aws-secrets-manager
   refreshInterval: "1h"
