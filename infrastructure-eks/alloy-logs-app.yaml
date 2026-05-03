@@ -23,11 +23,6 @@ spec:
             runAsUser: 0
           mounts:
             varlog: true
-          extraEnv:
-            - name: K8S_NODE_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
           resources:
             requests:
               cpu: 50m
