@@ -1,0 +1,76 @@
+replicaCount: 1
+image:
+  tag: "eks-b041fe5"
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 4Gi
+# Schedule on Karpenter workload nodes (t3.large, 8GB) not system nodes
+nodeSelector:
+  role: workload
+storage:
+  backend: s3
+  s3:
+    bucket: namiview-prod-bucket
+    region: eu-west-1
+serviceAccount:
+  create: true
+  name: namiview-api
+  annotations:
+    # TODO: Replace with dynamic approach (GitOps Bridge, SSM, CI-driven outputs)
+    eks.amazonaws.com/role-arn: "arn:aws:iam::015301735477:role/namiview-prod-namiview-api"
+ingress:
+  enabled: true
+  className: alb
+  host: eks.namiview.com
+  path: /api
+  pathType: Prefix
+  annotations:
+    alb.ingress.kubernetes.io/group.name: eks-namiview
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/healthcheck-path: /api/health
+    alb.ingress.kubernetes.io/target-group-attributes: stickiness.enabled=true,stickiness.lb_cookie.duration_seconds=3600
+vault:
+  clusterSecretStore: aws-secrets-manager
+  refreshInterval: "1h"
+  paths:
+    mongodb: namiview-prod/mongodb
+    mongodbDb: namiview-prod/mongodb
+    dockerReg: namiview-prod/dockerhub
+    googleCreds: namiview-prod/google-creds
+    jwt: namiview-prod/jwt
+app:
+  googleRedirectUri: "https://eks.namiview.com/api/auth/callback"
+  corsOrigins: "https://eks.namiview.com"
+  mongo:
+    atlas: true
+    host: namiview.pj6elop.mongodb.net
+    appName: namiview
+jobs:
+  queueUrl: "https://sqs.eu-west-1.amazonaws.com/015301735477/namiview-prod-jobs"
+metrics:
+  enabled: true
+  port: 9090
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+grafanaDashboard:
+  enabled: false
+networkPolicy:
+  enabled: false
+PodDisruptionBudget:
+  enabled: false
+# KEDA autoscaling — chart defaults memory@70%, min=1, max=5. Once we have
+# a Prometheus RPS query worth scaling on, swap the trigger here.
+autoscaling:
+  enabled: true
+  # Tighten blast radius while we're still on the memory scaler. Bumped back
+  # up once we switch to a real signal (Prometheus RPS).
+  maxReplicas: 3

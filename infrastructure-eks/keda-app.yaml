@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: keda
+  namespace: argocd
+  annotations:
+    # Wave 0 — installs the KEDA CRDs (ScaledObject etc.) early enough that
+    # any app chart with autoscaling.enabled=true can sync without a missing-CRD
+    # race on first apply.
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: namiview
+  source:
+    repoURL: https://kedacore.github.io/charts
+    chart: keda
+    targetRevision: 2.19.0
+    helm:
+      valuesObject:
+        nodeSelector:
+          role: workload
+        prometheus:
+          operator:
+            enabled: true
+            serviceMonitor:
+              enabled: true
+          metricServer:
+            enabled: true
+            serviceMonitor:
+              enabled: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: keda
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

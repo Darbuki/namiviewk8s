@@ -1,0 +1,21 @@
+replicaCount: 2
+image:
+  tag: "eks-b041fe5"
+ingress:
+  enabled: true
+  className: alb
+  host: eks.namiview.com
+  annotations:
+    alb.ingress.kubernetes.io/group.name: eks-namiview
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/healthcheck-path: /healthz
+vault:
+  clusterSecretStore: aws-secrets-manager
+  refreshInterval: "1h"
+  paths:
+    dockerReg: namiview-prod/dockerhub
+autoscaling:
+  enabled: true

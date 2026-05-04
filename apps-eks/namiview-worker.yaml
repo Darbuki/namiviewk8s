@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: namiview-worker
+  namespace: argocd
+spec:
+  project: namiview
+  sources:
+    - repoURL: https://github.com/Darbuki/namiview-charts.git
+      targetRevision: main
+      path: charts/namiview-worker
+      helm:
+        valueFiles:
+          - values.yaml
+          - $values/apps-eks/namiview-worker/values.yaml
+    - repoURL: https://github.com/Darbuki/namiviewk8s.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: namiview
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

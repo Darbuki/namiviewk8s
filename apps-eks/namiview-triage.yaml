@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: namiview-triage
+  namespace: argocd
+spec:
+  project: namiview
+  # Two-source pattern (same as namiview-api):
+  #   - chart source: namiview-charts repo (structure + defaults)
+  #   - values source: this repo (environment-specific overrides)
+  sources:
+    - repoURL: https://github.com/Darbuki/namiview-charts.git
+      targetRevision: main
+      path: charts/namiview-triage
+      helm:
+        valueFiles:
+          - values.yaml
+          - $values/apps-eks/namiview-triage/values.yaml
+    - repoURL: https://github.com/Darbuki/namiviewk8s.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: namiview-agents
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
