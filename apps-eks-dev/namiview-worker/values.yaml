@@ -1,6 +1,7 @@
 replicaCount: 1
 
 image:
+  repository: darbuki/namiview-worker
   tag: "dev-eks-2d62e4e"
 
 resources:
