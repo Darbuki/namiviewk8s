@@ -1,8 +1,6 @@
 replicaCount: 1
-
 image:
-  tag: "dev-eks-2d62e4e"
-
+  tag: "dev-eks-9f6db3a"
 resources:
   requests:
     cpu: 100m
@@ -10,22 +8,18 @@ resources:
   limits:
     cpu: 500m
     memory: 1Gi
-
 nodeSelector:
   role: workload
-
 storage:
   backend: s3
   s3:
     bucket: namiview-dev-bucket
     region: eu-west-1
-
 serviceAccount:
   create: true
   name: namiview-api
   annotations:
     eks.amazonaws.com/role-arn: "arn:aws:iam::015301735477:role/namiview-prod-namiview-api-dev"
-
 ingress:
   enabled: true
   className: alb
@@ -40,7 +34,6 @@ ingress:
     alb.ingress.kubernetes.io/ssl-redirect: "443"
     alb.ingress.kubernetes.io/healthcheck-path: /api/health
     alb.ingress.kubernetes.io/target-group-attributes: stickiness.enabled=true,stickiness.lb_cookie.duration_seconds=3600
-
 vault:
   clusterSecretStore: aws-secrets-manager
   refreshInterval: "1h"
@@ -50,7 +43,6 @@ vault:
     dockerReg: namiview-prod/dockerhub
     googleCreds: namiview-prod/google-creds
     jwt: namiview-prod/jwt
-
 app:
   googleRedirectUri: "https://dev-eks.namiview.com/api/auth/callback"
   corsOrigins: "https://dev-eks.namiview.com"
@@ -60,10 +52,8 @@ app:
     appName: namiview-dev
     collection: "dev-images"
     jobsCollection: "dev-jobs"
-
 jobs:
   queueUrl: "https://sqs.eu-west-1.amazonaws.com/015301735477/namiview-prod-dev-jobs"
-
 metrics:
   enabled: true
   port: 9090
@@ -71,13 +61,11 @@ metrics:
     enabled: true
     interval: 30s
     scrapeTimeout: 10s
-
 grafanaDashboard:
   enabled: false
 networkPolicy:
   enabled: false
 PodDisruptionBudget:
   enabled: false
-
 autoscaling:
   enabled: false
