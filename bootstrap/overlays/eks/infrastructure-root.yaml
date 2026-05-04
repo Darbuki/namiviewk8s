@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/Darbuki/namiviewk8s.git
-    targetRevision: 88-bootstrap-dev-environment-in-eks-cluster-shape-2
+    targetRevision: main
     path: infrastructure-eks
   destination:
     server: https://kubernetes.default.svc

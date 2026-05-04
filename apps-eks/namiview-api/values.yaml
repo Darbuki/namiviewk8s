@@ -61,6 +61,9 @@ app:
     host: namiview.pj6elop.mongodb.net
     appName: namiview
 
+jobs:
+  queueUrl: "https://sqs.eu-west-1.amazonaws.com/015301735477/namiview-prod-jobs"
+
 metrics:
   enabled: true
   port: 9090
