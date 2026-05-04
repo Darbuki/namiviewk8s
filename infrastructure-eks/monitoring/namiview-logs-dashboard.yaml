@@ -1,0 +1,241 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: namiview-logs-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  namiview-logs.json: |
+    {
+      "annotations": { "list": [] },
+      "editable": false,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "links": [],
+      "panels": [
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+          "id": 1,
+          "title": "Quick Filters",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "${datasource}" },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 1 },
+          "id": 2,
+          "options": {
+            "dedupStrategy": "none",
+            "enableLogDetails": true,
+            "prettifyLogMessage": false,
+            "showCommonLabels": false,
+            "showLabels": false,
+            "showTime": true,
+            "sortOrder": "Descending",
+            "wrapLogMessage": true
+          },
+          "targets": [
+            {
+              "datasource": { "type": "loki", "uid": "${datasource}" },
+              "expr": "{environment=~\"$environment\", app=~\"$app\", pod=~\"$pod\"} |~ \"$status\"",
+              "refId": "A"
+            }
+          ],
+          "title": "Selected Logs",
+          "type": "logs"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "${datasource}" },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 1 },
+          "id": 3,
+          "options": {
+            "dedupStrategy": "none",
+            "enableLogDetails": true,
+            "prettifyLogMessage": false,
+            "showCommonLabels": false,
+            "showLabels": false,
+            "showTime": true,
+            "sortOrder": "Descending",
+            "wrapLogMessage": true
+          },
+          "targets": [
+            {
+              "datasource": { "type": "loki", "uid": "${datasource}" },
+              "expr": "{environment=~\"$environment\", app=~\"$app\", pod=~\"$pod\"} |~ \"(?i)(error|exception|traceback| 5[0-9][0-9] )\"",
+              "refId": "A"
+            }
+          ],
+          "title": "Errors / 5xx",
+          "type": "logs"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "${datasource}" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "bars",
+                "fillOpacity": 80,
+                "gradientMode": "none",
+                "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": { "type": "linear" },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": { "group": "A", "mode": "none" },
+                "thresholdsStyle": { "mode": "off" }
+              },
+              "mappings": [],
+              "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 7, "w": 12, "x": 0, "y": 9 },
+          "id": 4,
+          "options": {
+            "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "single", "sort": "none" }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "loki", "uid": "${datasource}" },
+              "expr": "sum by (app) (count_over_time({environment=~\"$environment\", app=~\"$app\"} |~ \"(?i)(error|exception|traceback| 5[0-9][0-9] )\"[$__interval]))",
+              "legendFormat": "{{app}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Error Count by Service",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "${datasource}" },
+          "gridPos": { "h": 7, "w": 12, "x": 12, "y": 9 },
+          "id": 5,
+          "options": {
+            "dedupStrategy": "none",
+            "enableLogDetails": true,
+            "prettifyLogMessage": false,
+            "showCommonLabels": false,
+            "showLabels": false,
+            "showTime": true,
+            "sortOrder": "Descending",
+            "wrapLogMessage": true
+          },
+          "targets": [
+            {
+              "datasource": { "type": "loki", "uid": "${datasource}" },
+              "expr": "{environment=~\"$environment\", app=\"namiview-worker\", pod=~\"$pod\"} |~ \"job processing failed|completed job|processing job\"",
+              "refId": "A"
+            }
+          ],
+          "title": "Worker Jobs",
+          "type": "logs"
+        }
+      ],
+      "refresh": "30s",
+      "schemaVersion": 39,
+      "tags": ["namiview", "logs", "loki"],
+      "templating": {
+        "list": [
+          {
+            "current": { "selected": false, "text": "Loki", "value": "loki" },
+            "hide": 0,
+            "includeAll": false,
+            "label": "Data source",
+            "multi": false,
+            "name": "datasource",
+            "options": [],
+            "query": "loki",
+            "refresh": 1,
+            "regex": "",
+            "type": "datasource"
+          },
+          {
+            "allValue": ".*",
+            "current": { "selected": false, "text": "prod", "value": "prod" },
+            "datasource": { "type": "loki", "uid": "${datasource}" },
+            "definition": "label_values(environment)",
+            "hide": 0,
+            "includeAll": true,
+            "label": "Environment",
+            "multi": false,
+            "name": "environment",
+            "options": [],
+            "query": "label_values(environment)",
+            "refresh": 1,
+            "regex": "",
+            "sort": 1,
+            "type": "query"
+          },
+          {
+            "allValue": ".*",
+            "current": { "selected": false, "text": "All", "value": "$__all" },
+            "datasource": { "type": "loki", "uid": "${datasource}" },
+            "definition": "label_values({environment=~\"$environment\"}, app)",
+            "hide": 0,
+            "includeAll": true,
+            "label": "Service",
+            "multi": false,
+            "name": "app",
+            "options": [],
+            "query": "label_values({environment=~\"$environment\"}, app)",
+            "refresh": 1,
+            "regex": "",
+            "sort": 1,
+            "type": "query"
+          },
+          {
+            "allValue": ".*",
+            "current": { "selected": false, "text": "All", "value": "$__all" },
+            "datasource": { "type": "loki", "uid": "${datasource}" },
+            "definition": "label_values({environment=~\"$environment\", app=~\"$app\"}, pod)",
+            "hide": 0,
+            "includeAll": true,
+            "label": "Pod",
+            "multi": false,
+            "name": "pod",
+            "options": [],
+            "query": "label_values({environment=~\"$environment\", app=~\"$app\"}, pod)",
+            "refresh": 1,
+            "regex": "",
+            "sort": 1,
+            "type": "query"
+          },
+          {
+            "allValue": ".*",
+            "current": { "selected": false, "text": "errors", "value": "(?i)(error|exception|traceback| 5[0-9][0-9] )" },
+            "hide": 0,
+            "includeAll": false,
+            "label": "Status",
+            "multi": false,
+            "name": "status",
+            "options": [
+              { "selected": false, "text": "all", "value": ".*" },
+              { "selected": true, "text": "errors", "value": "(?i)(error|exception|traceback| 5[0-9][0-9] )" },
+              { "selected": false, "text": "warnings", "value": "(?i)(warn|warning)" },
+              { "selected": false, "text": "info", "value": "(?i)(info|notice| 2[0-9][0-9] )" },
+              { "selected": false, "text": "worker jobs", "value": "job processing failed|completed job|processing job" }
+            ],
+            "query": "all : .*,errors : (?i)(error|exception|traceback| 5[0-9][0-9] ),warnings : (?i)(warn|warning),info : (?i)(info|notice| 2[0-9][0-9] ),worker jobs : job processing failed|completed job|processing job",
+            "type": "custom"
+          }
+        ]
+      },
+      "time": { "from": "now-1h", "to": "now" },
+      "timepicker": {},
+      "timezone": "",
+      "title": "Namiview Logs",
+      "uid": "namiview-logs",
+      "version": 1,
+      "weekStart": ""
+    }
