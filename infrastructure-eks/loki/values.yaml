@@ -1,0 +1,67 @@
+deploymentMode: Monolithic
+
+loki:
+  auth_enabled: false
+  commonConfig:
+    replication_factor: 1
+  compactor:
+    retention_enabled: true
+    delete_request_store: s3
+  limits_config:
+    retention_period: 48h
+  storage:
+    type: s3
+    bucketNames:
+      chunks: namiview-loki-logs
+      ruler: namiview-loki-logs
+      admin: namiview-loki-logs
+    s3:
+      region: eu-west-1
+  schemaConfig:
+    configs:
+      - from: "2026-05-01"
+        store: tsdb
+        object_store: s3
+        schema: v13
+        index:
+          prefix: loki_index_
+          period: 24h
+
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::015301735477:role/namiview-prod-loki"
+
+singleBinary:
+  replicas: 1
+  nodeSelector:
+    role: workload
+  persistence:
+    enabled: true
+    storageClass: gp3
+    size: 10Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+read:
+  replicas: 0
+write:
+  replicas: 0
+backend:
+  replicas: 0
+
+gateway:
+  enabled: true
+  nodeSelector:
+    role: workload
+
+chunksCache:
+  enabled: false
+resultsCache:
+  enabled: false
+minio:
+  enabled: false
