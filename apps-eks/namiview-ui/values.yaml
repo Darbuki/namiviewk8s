@@ -1,8 +1,6 @@
 replicaCount: 2
-
 image:
-  tag: "prod-26-03-81660ec"
-
+  tag: "eks-b041fe5"
 ingress:
   enabled: true
   className: alb
@@ -14,12 +12,10 @@ ingress:
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
     alb.ingress.kubernetes.io/ssl-redirect: "443"
     alb.ingress.kubernetes.io/healthcheck-path: /healthz
-
 vault:
   clusterSecretStore: aws-secrets-manager
   refreshInterval: "1h"
   paths:
     dockerReg: namiview-prod/dockerhub
-
 autoscaling:
   enabled: true
