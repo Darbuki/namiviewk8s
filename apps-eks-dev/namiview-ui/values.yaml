@@ -1,6 +1,6 @@
 replicaCount: 1
 image:
-  tag: "dev-eks-ff9666a"
+  tag: "dev-eks-711f0f8"
 ingress:
   enabled: true
   className: alb
