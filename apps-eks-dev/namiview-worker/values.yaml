@@ -1,7 +1,7 @@
 replicaCount: 1
 image:
   repository: darbuki/namiview-worker
-  tag: "dev-eks-711f0f8"
+  tag: "dev-eks-9fcb45f"
 resources:
   requests:
     cpu: 512m
