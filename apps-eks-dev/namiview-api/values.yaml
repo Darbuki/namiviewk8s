@@ -1,6 +1,6 @@
 replicaCount: 1
 image:
-  tag: "dev-eks-0f5e2e3"
+  tag: "dev-eks-4f9e7c1"
 resources:
   requests:
     cpu: 100m
