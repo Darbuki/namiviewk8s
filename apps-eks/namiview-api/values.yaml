@@ -43,7 +43,6 @@ vault:
   paths:
     mongodb: namiview-prod/mongodb
     mongodbDb: namiview-prod/mongodb
-    dockerReg: namiview-prod/dockerhub
     googleCreds: namiview-prod/google-creds
     jwt: namiview-prod/jwt
 app:

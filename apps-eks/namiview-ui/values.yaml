@@ -16,7 +16,6 @@ ingress:
 vault:
   clusterSecretStore: aws-secrets-manager
   refreshInterval: "1h"
-  paths:
-    dockerReg: namiview-prod/dockerhub
+  paths: {}
 autoscaling:
   enabled: true
