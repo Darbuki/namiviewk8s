@@ -1,5 +1,6 @@
 replicaCount: 2
 image:
+  repository: 015301735477.dkr.ecr.eu-west-1.amazonaws.com/namiview-ui
   tag: "eks-1c8dfcb"
 ingress:
   enabled: true
@@ -15,7 +16,6 @@ ingress:
 vault:
   clusterSecretStore: aws-secrets-manager
   refreshInterval: "1h"
-  paths:
-    dockerReg: namiview-prod/dockerhub
+  paths: {}
 autoscaling:
   enabled: true

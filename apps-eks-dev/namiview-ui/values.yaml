@@ -1,5 +1,6 @@
 replicaCount: 1
 image:
+  repository: 015301735477.dkr.ecr.eu-west-1.amazonaws.com/namiview-ui
   tag: "dev-eks-8dda6c7"
 ingress:
   enabled: true
@@ -12,10 +13,5 @@ ingress:
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
     alb.ingress.kubernetes.io/ssl-redirect: "443"
     alb.ingress.kubernetes.io/healthcheck-path: /healthz
-vault:
-  clusterSecretStore: aws-secrets-manager
-  refreshInterval: "1h"
-  paths:
-    dockerReg: namiview-prod/dockerhub
 autoscaling:
   enabled: false
