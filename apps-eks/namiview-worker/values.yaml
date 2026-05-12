@@ -1,6 +1,6 @@
 replicaCount: 1
 image:
-  repository: darbuki/namiview-worker
+  repository: 015301735477.dkr.ecr.eu-west-1.amazonaws.com/namiview-worker
   tag: "eks-1c8dfcb"
 resources:
   requests:
