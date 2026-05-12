@@ -14,7 +14,7 @@ spec:
           - values.yaml
           - $values/apps-eks-dev/namiview-ui/values.yaml
     - repoURL: https://github.com/Darbuki/namiviewk8s.git
-      targetRevision: main
+      targetRevision: 99-migrate-from-dockerhub-to-ecr
       ref: values
   destination:
     server: https://kubernetes.default.svc
