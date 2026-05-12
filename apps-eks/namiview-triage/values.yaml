@@ -2,8 +2,7 @@
 # Structure in the chart; deployment choices here.
 
 image:
-  # Chart default is `:latest` which is fine while we're iterating; swap to
-  # a pinned `:sha-<short>` once the agent stabilises.
+  repository: 015301735477.dkr.ecr.eu-west-1.amazonaws.com/namiview-triage
   tag: latest
 
 app:
