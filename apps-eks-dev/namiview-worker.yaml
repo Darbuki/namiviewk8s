@@ -7,14 +7,14 @@ spec:
   project: namiview
   sources:
     - repoURL: https://github.com/Darbuki/namiview-charts.git
-      targetRevision: 99-migrate-from-dockerhub-to-ecr
+      targetRevision: main
       path: charts/namiview-worker
       helm:
         valueFiles:
           - values.yaml
           - $values/apps-eks-dev/namiview-worker/values.yaml
     - repoURL: https://github.com/Darbuki/namiviewk8s.git
-      targetRevision: 99-migrate-from-dockerhub-to-ecr
+      targetRevision: main
       ref: values
   destination:
     server: https://kubernetes.default.svc
