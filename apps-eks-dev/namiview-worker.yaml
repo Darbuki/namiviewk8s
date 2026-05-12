@@ -7,7 +7,7 @@ spec:
   project: namiview
   sources:
     - repoURL: https://github.com/Darbuki/namiview-charts.git
-      targetRevision: main
+      targetRevision: 99-migrate-from-dockerhub-to-ecr
       path: charts/namiview-worker
       helm:
         valueFiles:
