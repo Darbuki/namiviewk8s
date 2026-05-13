@@ -17,6 +17,7 @@ serviceAccount:
   annotations:
     eks.amazonaws.com/role-arn: "arn:aws:iam::015301735477:role/namiview-prod-namiview-worker"
 storage:
+  backend: s3
   s3:
     bucket: namiview-prod-bucket
     region: eu-west-1
