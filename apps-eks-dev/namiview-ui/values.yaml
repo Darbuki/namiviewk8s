@@ -1,7 +1,7 @@
 replicaCount: 1
 image:
   repository: 015301735477.dkr.ecr.eu-west-1.amazonaws.com/namiview-ui
-  tag: "dev-eks-4859dee"
+  tag: "dev-eks-b07d33e"
 ingress:
   enabled: true
   className: alb
