@@ -26,7 +26,7 @@ serviceAccount:
 ingress:
   enabled: true
   className: alb
-  host: eks.namiview.com
+  host: namiview.com
   path: /api
   pathType: Prefix
   annotations:
@@ -46,8 +46,8 @@ vault:
     googleCreds: namiview-prod/google-creds
     jwt: namiview-prod/jwt
 app:
-  googleRedirectUri: "https://eks.namiview.com/api/auth/callback"
-  corsOrigins: "https://eks.namiview.com"
+  googleRedirectUri: "https://namiview.com/api/auth/callback"
+  corsOrigins: "https://namiview.com"
   mongo:
     atlas: true
     host: namiview.pj6elop.mongodb.net
