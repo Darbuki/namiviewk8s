@@ -22,7 +22,9 @@ data:
     HDR_ACCEPT="Accept: application/vnd.atlas.2023-01-01+json"
 
     EXISTING=$(curl -fsS $AUTH -H "$HDR_ACCEPT" "$API?itemsPerPage=500")
-    OLD_IPS=$(echo "$EXISTING" | jq -r --arg c "$COMMENT" '.results[] | select(.comment == $c) | (.ipAddress // .cidrBlock)')
+    echo "Atlas API response:"
+    echo "$EXISTING"
+    OLD_IPS=$(echo "$EXISTING" | jq -r --arg c "$COMMENT" '(.results // []) | .[] | select(.comment == $c) | (.ipAddress // .cidrBlock)')
 
     already_present=0
     for ip in $OLD_IPS; do
