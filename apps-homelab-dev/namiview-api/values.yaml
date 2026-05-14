@@ -1,0 +1,56 @@
+nameOverride: namiview-api-dev
+replicaCount: 1
+image:
+  repository: 015301735477.dkr.ecr.eu-west-1.amazonaws.com/namiview-api
+  tag: "dev-eks-36d1438"
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+storage:
+  backend: s3
+  s3:
+    bucket: namiview-dev-bucket
+    region: eu-west-1
+imagePullSecrets:
+  - name: regcred
+aws:
+  staticCredentials:
+    enabled: true
+    secretName: aws-credentials
+serviceAccount:
+  create: true
+  name: namiview-api
+  annotations: {}
+ingress:
+  enabled: false
+vault:
+  clusterSecretStore: aws-secrets-manager
+  refreshInterval: "1h"
+  paths:
+    mongodb: namiview-prod/mongodb
+    mongodbDb: namiview-prod/mongodb
+    googleCreds: namiview-prod/google-creds
+    jwt: namiview-prod/jwt
+app:
+  googleRedirectUri: "https://dev.namiview.com/api/auth/callback"
+  corsOrigins: "https://dev.namiview.com"
+  mongo:
+    atlas: true
+    host: namiview.pj6elop.mongodb.net
+    appName: namiview-dev
+jobs:
+  queueUrl: "https://sqs.eu-west-1.amazonaws.com/015301735477/namiview-prod-dev-jobs"
+metrics:
+  enabled: false
+grafanaDashboard:
+  enabled: false
+networkPolicy:
+  enabled: false
+PodDisruptionBudget:
+  enabled: false
+autoscaling:
+  enabled: false

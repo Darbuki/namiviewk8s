@@ -1,0 +1,22 @@
+image:
+  repository: 015301735477.dkr.ecr.eu-west-1.amazonaws.com/namiview-triage
+  tag: latest
+
+imagePullSecrets:
+  - name: regcred
+
+app:
+  githubRepo: Darbuki/namiview
+
+externalSecrets:
+  clusterSecretStore: aws-secrets-manager
+  paths:
+    anthropic: namiview-prod/anthropic-api-key
+    github: namiview-prod/triage-agent-github-pat
+
+# Monitoring stack not deployed on homelab yet — disable.
+alertmanagerConfig:
+  enabled: false
+
+networkPolicy:
+  enabled: false

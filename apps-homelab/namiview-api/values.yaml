@@ -1,0 +1,58 @@
+replicaCount: 1
+image:
+  repository: 015301735477.dkr.ecr.eu-west-1.amazonaws.com/namiview-api
+  tag: "eks-a5963c6"
+resources:
+  requests:
+    cpu: 200m
+    memory: 512Mi
+  limits:
+    cpu: 1500m
+    memory: 2Gi
+storage:
+  backend: s3
+  s3:
+    bucket: namiview-prod-bucket
+    region: eu-west-1
+imagePullSecrets:
+  - name: regcred
+aws:
+  staticCredentials:
+    enabled: true
+    secretName: aws-credentials
+serviceAccount:
+  create: true
+  name: namiview-api
+  annotations: {}
+ingress:
+  enabled: false
+vault:
+  clusterSecretStore: aws-secrets-manager
+  refreshInterval: "1h"
+  paths:
+    mongodb: namiview-prod/mongodb
+    mongodbDb: namiview-prod/mongodb
+    googleCreds: namiview-prod/google-creds
+    jwt: namiview-prod/jwt
+app:
+  googleRedirectUri: "https://namiview.com/api/auth/callback"
+  corsOrigins: "https://namiview.com"
+  mongo:
+    atlas: true
+    host: namiview.pj6elop.mongodb.net
+    appName: namiview
+jobs:
+  queueUrl: "https://sqs.eu-west-1.amazonaws.com/015301735477/namiview-prod-jobs"
+metrics:
+  enabled: true
+  port: 9090
+  serviceMonitor:
+    enabled: false
+grafanaDashboard:
+  enabled: false
+networkPolicy:
+  enabled: false
+PodDisruptionBudget:
+  enabled: false
+autoscaling:
+  enabled: false

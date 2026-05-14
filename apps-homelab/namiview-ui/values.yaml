@@ -1,0 +1,14 @@
+replicaCount: 1
+image:
+  repository: 015301735477.dkr.ecr.eu-west-1.amazonaws.com/namiview-ui
+  tag: "eks-a5963c6"
+imagePullSecrets:
+  - name: regcred
+ingress:
+  enabled: false
+vault:
+  clusterSecretStore: aws-secrets-manager
+  refreshInterval: "1h"
+  paths: {}
+autoscaling:
+  enabled: false
