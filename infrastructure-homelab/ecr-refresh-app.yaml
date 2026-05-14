@@ -9,7 +9,7 @@ spec:
   project: namiview
   source:
     repoURL: https://github.com/Darbuki/namiviewk8s.git
-    targetRevision: main
+    targetRevision: 103-hybrid-homelab-aws-move-compute-from-eks-to-homelab
     path: infrastructure-homelab/ecr-refresh
     directory:
       recurse: true
