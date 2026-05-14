@@ -18,12 +18,11 @@ data:
 
     COMMENT="homelab-auto"
     AUTH="--digest -u $ATLAS_PUBLIC_KEY:$ATLAS_PRIVATE_KEY"
-    API="https://cloud.mongodb.com/api/atlas/v2/groups/$ATLAS_PROJECT_ID/accessList"
+    # Atlas API v2 — resource is `accessLists` (plural). v1 used singular.
+    API="https://cloud.mongodb.com/api/atlas/v2/groups/$ATLAS_PROJECT_ID/accessLists"
     HDR_ACCEPT="Accept: application/vnd.atlas.2023-01-01+json"
 
     EXISTING=$(curl -fsS $AUTH -H "$HDR_ACCEPT" "$API?itemsPerPage=500")
-    echo "Atlas API response:"
-    echo "$EXISTING"
     OLD_IPS=$(echo "$EXISTING" | jq -r --arg c "$COMMENT" '(.results // []) | .[] | select(.comment == $c) | (.ipAddress // .cidrBlock)')
 
     already_present=0
