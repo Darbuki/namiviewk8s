@@ -1,0 +1,130 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring-stack
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: namiview
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: kube-prometheus-stack
+    targetRevision: 85.0.3
+    helm:
+      valuesObject:
+        # ── Grafana ───────────────────────────────────────────────────────
+        grafana:
+          enabled: true
+          admin:
+            existingSecret: grafana-admin-secret
+            userKey: admin-user
+            passwordKey: admin-password
+          grafana.ini:
+            server:
+              root_url: https://grafana.namiview.com
+              # Cloudflare Tunnel terminates TLS at the edge and forwards
+              # HTTP; this avoids redirect loops on login.
+              serve_from_sub_path: false
+            auth.anonymous:
+              enabled: true
+              org_role: Viewer
+          sidecar:
+            dashboards:
+              enabled: true
+              searchNamespace: ALL
+            datasources:
+              enabled: true
+              searchNamespace: ALL
+          service:
+            type: ClusterIP
+            port: 80
+          persistence:
+            enabled: true
+            type: pvc
+            storageClassName: local-path
+            accessModes: ["ReadWriteOnce"]
+            size: 10Gi
+          # No EBS — disable EKS-only init container.
+          initChownData:
+            enabled: false
+
+        # ── Prometheus ────────────────────────────────────────────────────
+        prometheus:
+          prometheusSpec:
+            retention: 15d
+            storageSpec:
+              volumeClaimTemplate:
+                spec:
+                  storageClassName: local-path
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: 50Gi
+            # Scrape any ServiceMonitor/PodMonitor in any namespace,
+            # without requiring a matching helm-chart label.
+            serviceMonitorSelectorNilUsesHelmValues: false
+            podMonitorSelectorNilUsesHelmValues: false
+            ruleSelectorNilUsesHelmValues: false
+            probeSelectorNilUsesHelmValues: false
+            resources:
+              requests:
+                cpu: 200m
+                memory: 1Gi
+              limits:
+                cpu: 2000m
+                memory: 4Gi
+
+        # ── Alertmanager ──────────────────────────────────────────────────
+        alertmanager:
+          enabled: true
+          alertmanagerSpec:
+            # Trust matchers in AlertmanagerConfig CRDs as written, so the
+            # triage agent's AlertmanagerConfig (in namiview-agents ns) can
+            # route cluster-wide alerts. Default OnNamespace would silently
+            # scope it to the CRD's own namespace.
+            alertmanagerConfigMatcherStrategy:
+              type: None
+            storage:
+              volumeClaimTemplate:
+                spec:
+                  storageClassName: local-path
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: 5Gi
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+
+        # ── Disable k3s embedded control plane (binds to 127.0.0.1 only) ──
+        # Re-enable once we add bind-address=0.0.0.0 to the k3s install.
+        kubeEtcd:
+          enabled: false
+        kubeControllerManager:
+          enabled: false
+        kubeScheduler:
+          enabled: false
+        kubeProxy:
+          enabled: false
+
+        # ── These are healthy out of the box on k3s ───────────────────────
+        # (left on by default; documented here so we know they're intentional)
+        # kubelet.enabled: true
+        # coreDns.enabled: true
+        # nodeExporter.enabled: true
+        # kubeStateMetrics.enabled: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
