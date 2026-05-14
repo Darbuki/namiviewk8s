@@ -16,7 +16,7 @@ data:
     # requires a date in the Accept header; 2023-01-01 isn't valid here.
     API="https://cloud.mongodb.com/api/atlas/v2/groups/$ATLAS_PROJECT_ID/accessList"
     AUTH_USER="$ATLAS_PUBLIC_KEY:$ATLAS_PRIVATE_KEY"
-    ACCEPT="application/vnd.atlas.2024-08-05+json"
+    ACCEPT="application/vnd.atlas.2025-03-12+json"
 
     CURRENT_IP=$(curl -fsS --max-time 10 https://ifconfig.me)
     echo "Current public IP: $CURRENT_IP"
