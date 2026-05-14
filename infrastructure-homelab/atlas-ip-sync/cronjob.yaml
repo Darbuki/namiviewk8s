@@ -7,54 +7,27 @@ data:
   sync.sh: |
     #!/bin/sh
     # Keep the homelab's current public egress IP allowlisted in MongoDB Atlas.
-    # Idempotent: identifies its own entries via comment="homelab-auto", removes
-    # stale ones, adds the current one.
-    set -euo pipefail
+    set -eu
 
     apk add --no-cache --quiet curl jq >/dev/null
 
-    # Helper: run curl, print HTTP code + body, fail on non-2xx.
-    # Args: METHOD URL [DATA]
-    atlas_curl() {
-      method="$1"; url="$2"; data="${3:-}"
-      tmp=$(mktemp)
-      if [ -n "$data" ]; then
-        code=$(curl -sS --digest -u "$ATLAS_PUBLIC_KEY:$ATLAS_PRIVATE_KEY" \
-          -H "Accept: application/vnd.atlas.2023-01-01+json" \
-          -H "Content-Type: application/json" \
-          -X "$method" "$url" -d "$data" \
-          -o "$tmp" -w "%{http_code}")
-      else
-        code=$(curl -sS --digest -u "$ATLAS_PUBLIC_KEY:$ATLAS_PRIVATE_KEY" \
-          -H "Accept: application/vnd.atlas.2023-01-01+json" \
-          -X "$method" "$url" \
-          -o "$tmp" -w "%{http_code}")
-      fi
-      echo "  -> $method $url"
-      echo "  -> HTTP $code"
-      echo "  -> body:"
-      sed 's/^/     /' "$tmp"
-      cat "$tmp"   # to stdout so caller can capture body
-      rm -f "$tmp"
-      [ "${code%??}" = "2" ]
-    }
+    COMMENT="homelab-auto"
+    API="https://cloud.mongodb.com/api/atlas/v2/groups/$ATLAS_PROJECT_ID/accessLists"
+    AUTH_USER="$ATLAS_PUBLIC_KEY:$ATLAS_PRIVATE_KEY"
+    ACCEPT="application/vnd.atlas.2023-01-01+json"
 
     CURRENT_IP=$(curl -fsS --max-time 10 https://ifconfig.me)
     echo "Current public IP: $CURRENT_IP"
 
-    COMMENT="homelab-auto"
-    API="https://cloud.mongodb.com/api/atlas/v2/groups/$ATLAS_PROJECT_ID/accessLists"
+    echo "=== GET access list ==="
+    BODY_FILE=$(mktemp)
+    CODE=$(curl -sS --digest -u "$AUTH_USER" -H "Accept: $ACCEPT" \
+      "$API?itemsPerPage=500" -o "$BODY_FILE" -w "%{http_code}")
+    echo "HTTP $CODE"
+    echo "Body:"; cat "$BODY_FILE"; echo
+    [ "${CODE%??}" = "2" ] || { echo "ABORT: GET failed"; exit 1; }
 
-    echo "=== Listing current access list entries ==="
-    EXISTING=$(atlas_curl GET "$API?itemsPerPage=500" 2>&1 | tail -n +5)
-    # ^^ tail strips our diagnostic lines, keeps only the body
-
-    # Re-fetch cleanly for jq (without diagnostic noise)
-    EXISTING_BODY=$(curl -sS --digest -u "$ATLAS_PUBLIC_KEY:$ATLAS_PRIVATE_KEY" \
-      -H "Accept: application/vnd.atlas.2023-01-01+json" \
-      "$API?itemsPerPage=500")
-
-    OLD_IPS=$(echo "$EXISTING_BODY" | jq -r --arg c "$COMMENT" '(.results // []) | .[] | select(.comment == $c) | (.ipAddress // .cidrBlock)')
+    OLD_IPS=$(jq -r --arg c "$COMMENT" '(.results // []) | .[] | select(.comment == $c) | (.ipAddress // .cidrBlock)' < "$BODY_FILE")
     echo "Old auto-managed entries: ${OLD_IPS:-<none>}"
 
     already_present=0
@@ -65,20 +38,32 @@ data:
     done
 
     if [ "$already_present" = "1" ]; then
-      echo "Current IP already allowlisted — nothing to add."
+      echo "Current IP already allowlisted."
     else
-      echo "=== Adding $CURRENT_IP to Atlas allowlist ==="
-      atlas_curl POST "$API" "{\"ipAddress\":\"$CURRENT_IP\",\"comment\":\"$COMMENT\"}" >/dev/null
+      echo "=== POST add $CURRENT_IP ==="
+      PAYLOAD="{\"ipAddress\":\"$CURRENT_IP\",\"comment\":\"$COMMENT\"}"
+      echo "Payload: $PAYLOAD"
+      CODE=$(curl -sS --digest -u "$AUTH_USER" \
+        -H "Accept: $ACCEPT" -H "Content-Type: application/json" \
+        -X POST "$API" -d "$PAYLOAD" \
+        -o "$BODY_FILE" -w "%{http_code}")
+      echo "HTTP $CODE"
+      echo "Body:"; cat "$BODY_FILE"; echo
+      [ "${CODE%??}" = "2" ] || { echo "ABORT: POST failed"; exit 1; }
     fi
 
     for ip in $OLD_IPS; do
       if [ "$ip" != "$CURRENT_IP" ] && [ "$ip" != "$CURRENT_IP/32" ]; then
         key=$(printf '%s' "$ip" | sed 's|/|%2F|g')
-        echo "=== Removing stale allowlist entry: $ip ==="
-        atlas_curl DELETE "$API/$key" >/dev/null
+        echo "=== DELETE stale: $ip ==="
+        CODE=$(curl -sS --digest -u "$AUTH_USER" -H "Accept: $ACCEPT" \
+          -X DELETE "$API/$key" -o "$BODY_FILE" -w "%{http_code}")
+        echo "HTTP $CODE"
+        echo "Body:"; cat "$BODY_FILE"; echo
       fi
     done
 
+    rm -f "$BODY_FILE"
     echo "Done."
 ---
 apiVersion: batch/v1
