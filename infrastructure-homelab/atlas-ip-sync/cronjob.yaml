@@ -13,17 +13,49 @@ data:
 
     apk add --no-cache --quiet curl jq >/dev/null
 
+    # Helper: run curl, print HTTP code + body, fail on non-2xx.
+    # Args: METHOD URL [DATA]
+    atlas_curl() {
+      method="$1"; url="$2"; data="${3:-}"
+      tmp=$(mktemp)
+      if [ -n "$data" ]; then
+        code=$(curl -sS --digest -u "$ATLAS_PUBLIC_KEY:$ATLAS_PRIVATE_KEY" \
+          -H "Accept: application/vnd.atlas.2023-01-01+json" \
+          -H "Content-Type: application/json" \
+          -X "$method" "$url" -d "$data" \
+          -o "$tmp" -w "%{http_code}")
+      else
+        code=$(curl -sS --digest -u "$ATLAS_PUBLIC_KEY:$ATLAS_PRIVATE_KEY" \
+          -H "Accept: application/vnd.atlas.2023-01-01+json" \
+          -X "$method" "$url" \
+          -o "$tmp" -w "%{http_code}")
+      fi
+      echo "  -> $method $url"
+      echo "  -> HTTP $code"
+      echo "  -> body:"
+      sed 's/^/     /' "$tmp"
+      cat "$tmp"   # to stdout so caller can capture body
+      rm -f "$tmp"
+      [ "${code%??}" = "2" ]
+    }
+
     CURRENT_IP=$(curl -fsS --max-time 10 https://ifconfig.me)
     echo "Current public IP: $CURRENT_IP"
 
     COMMENT="homelab-auto"
-    AUTH="--digest -u $ATLAS_PUBLIC_KEY:$ATLAS_PRIVATE_KEY"
-    # Atlas API v2 — resource is `accessLists` (plural). v1 used singular.
     API="https://cloud.mongodb.com/api/atlas/v2/groups/$ATLAS_PROJECT_ID/accessLists"
-    HDR_ACCEPT="Accept: application/vnd.atlas.2023-01-01+json"
 
-    EXISTING=$(curl -fsS $AUTH -H "$HDR_ACCEPT" "$API?itemsPerPage=500")
-    OLD_IPS=$(echo "$EXISTING" | jq -r --arg c "$COMMENT" '(.results // []) | .[] | select(.comment == $c) | (.ipAddress // .cidrBlock)')
+    echo "=== Listing current access list entries ==="
+    EXISTING=$(atlas_curl GET "$API?itemsPerPage=500" 2>&1 | tail -n +5)
+    # ^^ tail strips our diagnostic lines, keeps only the body
+
+    # Re-fetch cleanly for jq (without diagnostic noise)
+    EXISTING_BODY=$(curl -sS --digest -u "$ATLAS_PUBLIC_KEY:$ATLAS_PRIVATE_KEY" \
+      -H "Accept: application/vnd.atlas.2023-01-01+json" \
+      "$API?itemsPerPage=500")
+
+    OLD_IPS=$(echo "$EXISTING_BODY" | jq -r --arg c "$COMMENT" '(.results // []) | .[] | select(.comment == $c) | (.ipAddress // .cidrBlock)')
+    echo "Old auto-managed entries: ${OLD_IPS:-<none>}"
 
     already_present=0
     for ip in $OLD_IPS; do
@@ -35,18 +67,15 @@ data:
     if [ "$already_present" = "1" ]; then
       echo "Current IP already allowlisted — nothing to add."
     else
-      echo "Adding $CURRENT_IP to Atlas allowlist"
-      curl -fsS $AUTH -H "$HDR_ACCEPT" -H "Content-Type: application/json" \
-        -X POST "$API" \
-        -d "{\"ipAddress\":\"$CURRENT_IP\",\"comment\":\"$COMMENT\"}" >/dev/null
+      echo "=== Adding $CURRENT_IP to Atlas allowlist ==="
+      atlas_curl POST "$API" "{\"ipAddress\":\"$CURRENT_IP\",\"comment\":\"$COMMENT\"}" >/dev/null
     fi
 
     for ip in $OLD_IPS; do
       if [ "$ip" != "$CURRENT_IP" ] && [ "$ip" != "$CURRENT_IP/32" ]; then
-        # The API accepts the entry key as either the bare IP or url-encoded CIDR.
         key=$(printf '%s' "$ip" | sed 's|/|%2F|g')
-        echo "Removing stale allowlist entry: $ip"
-        curl -fsS $AUTH -H "$HDR_ACCEPT" -X DELETE "$API/$key" >/dev/null
+        echo "=== Removing stale allowlist entry: $ip ==="
+        atlas_curl DELETE "$API/$key" >/dev/null
       fi
     done
 
