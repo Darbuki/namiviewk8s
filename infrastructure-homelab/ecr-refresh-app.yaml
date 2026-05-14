@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ecr-refresh
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  project: namiview
+  source:
+    repoURL: https://github.com/Darbuki/namiviewk8s.git
+    targetRevision: main
+    path: infrastructure-homelab/ecr-refresh
+    directory:
+      recurse: true
+  destination:
+    server: https://kubernetes.default.svc
+    # namespace ignored — manifests are namespace-scoped explicitly.
+    namespace: namiview
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
