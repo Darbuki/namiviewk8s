@@ -12,11 +12,9 @@ data:
     apk add --no-cache --quiet curl jq >/dev/null
 
     COMMENT="homelab-auto"
-    # Atlas v2's self-link names this resource `whitelist`. Docs sometimes
-    # refer to it as accessList(s) but the API treats those as unknown sub-paths.
-    API="https://cloud.mongodb.com/api/atlas/v2/groups/$ATLAS_PROJECT_ID/whitelist"
+    API="https://cloud.mongodb.com/api/atlas/v2/groups/$ATLAS_PROJECT_ID/accessList"
     AUTH_USER="$ATLAS_PUBLIC_KEY:$ATLAS_PRIVATE_KEY"
-    ACCEPT="application/vnd.atlas.2023-01-01+json"
+    ACCEPT="application/json"
 
     CURRENT_IP=$(curl -fsS --max-time 10 https://ifconfig.me)
     echo "Current public IP: $CURRENT_IP"
