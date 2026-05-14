@@ -12,7 +12,9 @@ data:
     apk add --no-cache --quiet curl jq >/dev/null
 
     COMMENT="homelab-auto"
-    API="https://cloud.mongodb.com/api/atlas/v2/groups/$ATLAS_PROJECT_ID/accessLists"
+    # Atlas v2's self-link names this resource `whitelist`. Docs sometimes
+    # refer to it as accessList(s) but the API treats those as unknown sub-paths.
+    API="https://cloud.mongodb.com/api/atlas/v2/groups/$ATLAS_PROJECT_ID/whitelist"
     AUTH_USER="$ATLAS_PUBLIC_KEY:$ATLAS_PRIVATE_KEY"
     ACCEPT="application/vnd.atlas.2023-01-01+json"
 
@@ -41,7 +43,7 @@ data:
       echo "Current IP already allowlisted."
     else
       echo "=== POST add $CURRENT_IP ==="
-      PAYLOAD="{\"ipAddress\":\"$CURRENT_IP\",\"comment\":\"$COMMENT\"}"
+      PAYLOAD="[{\"ipAddress\":\"$CURRENT_IP\",\"comment\":\"$COMMENT\"}]"
       echo "Payload: $PAYLOAD"
       CODE=$(curl -sS --digest -u "$AUTH_USER" \
         -H "Accept: $ACCEPT" -H "Content-Type: application/json" \
