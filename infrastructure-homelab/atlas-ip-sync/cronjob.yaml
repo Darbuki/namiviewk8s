@@ -12,7 +12,9 @@ data:
     apk add --no-cache --quiet curl jq >/dev/null
 
     COMMENT="homelab-auto"
-    API="https://cloud.mongodb.com/api/atlas/v2/groups/$ATLAS_PROJECT_ID/accessList"
+    # Atlas API v1.0 — stable, well-documented. v2's content-negotiation
+    # versioning kept tripping us up; this resource has no v1→v2 feature gap.
+    API="https://cloud.mongodb.com/api/atlas/v1.0/groups/$ATLAS_PROJECT_ID/accessList"
     AUTH_USER="$ATLAS_PUBLIC_KEY:$ATLAS_PRIVATE_KEY"
     ACCEPT="application/json"
 
