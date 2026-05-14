@@ -38,7 +38,7 @@ data:
       echo "Adding $CURRENT_IP to Atlas allowlist"
       curl -fsS $AUTH -H "$HDR_ACCEPT" -H "Content-Type: application/json" \
         -X POST "$API" \
-        -d "[{\"ipAddress\":\"$CURRENT_IP\",\"comment\":\"$COMMENT\"}]" >/dev/null
+        -d "{\"ipAddress\":\"$CURRENT_IP\",\"comment\":\"$COMMENT\"}" >/dev/null
     fi
 
     for ip in $OLD_IPS; do
