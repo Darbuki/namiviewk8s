@@ -12,11 +12,11 @@ data:
     apk add --no-cache --quiet curl jq >/dev/null
 
     COMMENT="homelab-auto"
-    # Atlas API v1.0 — stable, well-documented. v2's content-negotiation
-    # versioning kept tripping us up; this resource has no v1→v2 feature gap.
-    API="https://cloud.mongodb.com/api/atlas/v1.0/groups/$ATLAS_PROJECT_ID/accessList"
+    # Atlas API v2 — endpoint per current docs. Resource-level versioning
+    # requires a date in the Accept header; 2023-01-01 isn't valid here.
+    API="https://cloud.mongodb.com/api/atlas/v2/groups/$ATLAS_PROJECT_ID/accessList"
     AUTH_USER="$ATLAS_PUBLIC_KEY:$ATLAS_PRIVATE_KEY"
-    ACCEPT="application/json"
+    ACCEPT="application/vnd.atlas.2024-08-05+json"
 
     CURRENT_IP=$(curl -fsS --max-time 10 https://ifconfig.me)
     echo "Current public IP: $CURRENT_IP"
