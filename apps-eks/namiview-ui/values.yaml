@@ -5,7 +5,7 @@ image:
 ingress:
   enabled: true
   className: alb
-  host: eks.namiview.com
+  host: namiview.com
   annotations:
     alb.ingress.kubernetes.io/group.name: eks-namiview
     alb.ingress.kubernetes.io/scheme: internet-facing
