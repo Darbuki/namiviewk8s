@@ -2,7 +2,7 @@ nameOverride: namiview-ui-dev
 replicaCount: 1
 image:
   repository: 015301735477.dkr.ecr.eu-west-1.amazonaws.com/namiview-ui
-  tag: "dev-eks-b07d33e"
+  tag: "dev-eks-6b92fea"
 imagePullSecrets:
   - name: regcred
 ingress:
