@@ -37,3 +37,8 @@ vault:
   paths:
     mongodb: namiview-prod/mongodb
     mongodbDb: namiview-prod/mongodb
+metrics:
+  enabled: true
+  port: 9090
+  serviceMonitor:
+    enabled: true
