@@ -32,12 +32,18 @@ spec:
                 index:
                   prefix: loki_index_
                   period: 24h
-          # Single-binary chunk cache is in-process; disable memcached/results cache
-          # so we don't pull in extra workloads we don't need on a single node.
-          chunksCache:
-            enabled: false
-          resultsCache:
-            enabled: false
+
+        # Single-binary chunk cache is in-process; disable memcached/results
+        # cache so we don't pull in extra workloads we don't need on one node.
+        # (These are root-level keys in the grafana/loki chart, not under `loki:`.)
+        chunksCache:
+          enabled: false
+        resultsCache:
+          enabled: false
+
+        # Canary pushes test logs to Loki — not useful on a single node.
+        lokiCanary:
+          enabled: false
 
         # ── Single-binary deployment ──────────────────────────────────────
         singleBinary:
@@ -70,8 +76,6 @@ spec:
             enabled: false
             grafanaAgent:
               installOperator: false
-          lokiCanary:
-            enabled: false
 
         # Disable the test pod so we don't get a leftover Helm test artifact.
         test:
