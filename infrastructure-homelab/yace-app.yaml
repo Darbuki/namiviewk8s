@@ -1,0 +1,127 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: yace
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  project: namiview
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: prometheus-yet-another-cloudwatch-exporter
+    targetRevision: 0.45.0
+    helm:
+      valuesObject:
+        # AWS creds come from the bootstrap `aws-credentials` secret. Copy it
+        # into the monitoring namespace once at install time:
+        #   kubectl get secret aws-credentials -n external-secrets -o yaml \
+        #     | sed '/namespace:/d' | kubectl apply -n monitoring -f -
+        # (The chart's `aws.secret` block expects different key names than
+        # ours, so we inject env vars manually via extraEnv instead.)
+        extraEnv:
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: aws-credentials
+                key: access-key-id
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: aws-credentials
+                key: secret-access-key
+          - name: AWS_REGION
+            value: eu-west-1
+
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+
+        serviceMonitor:
+          enabled: true
+          interval: 60s
+          namespace: monitoring
+          labels:
+            release: monitoring-stack
+
+        config: |-
+          apiVersion: v1alpha1
+          sts-region: eu-west-1
+          discovery:
+            jobs:
+              # ── SQS ───────────────────────────────────────────────────
+              # Per-queue depth, in-flight, and age of oldest message.
+              # Drives the worker lag dashboard + alerts.
+              - type: AWS/SQS
+                regions:
+                  - eu-west-1
+                metrics:
+                  - name: ApproximateNumberOfMessagesVisible
+                    statistics: [Average, Maximum]
+                    period: 60
+                    length: 300
+                  - name: ApproximateNumberOfMessagesNotVisible
+                    statistics: [Average]
+                    period: 60
+                    length: 300
+                  - name: ApproximateAgeOfOldestMessage
+                    statistics: [Maximum]
+                    period: 60
+                    length: 300
+                  - name: NumberOfMessagesSent
+                    statistics: [Sum]
+                    period: 300
+                    length: 600
+                  - name: NumberOfMessagesReceived
+                    statistics: [Sum]
+                    period: 300
+                    length: 600
+                  - name: NumberOfMessagesDeleted
+                    statistics: [Sum]
+                    period: 300
+                    length: 600
+
+              # ── S3 (bucket-level daily metrics) ───────────────────────
+              # CloudWatch S3 storage metrics are daily — 1h period is plenty.
+              - type: AWS/S3
+                regions:
+                  - eu-west-1
+                metrics:
+                  - name: BucketSizeBytes
+                    statistics: [Average]
+                    period: 86400
+                    length: 172800
+                  - name: NumberOfObjects
+                    statistics: [Average]
+                    period: 86400
+                    length: 172800
+
+              # ── ECR ───────────────────────────────────────────────────
+              # Image push/pull counts per repo — useful for detecting CI
+              # going dark or rogue pull storms.
+              - type: AWS/ECR
+                regions:
+                  - eu-west-1
+                metrics:
+                  - name: RepositoryPullCount
+                    statistics: [Sum]
+                    period: 300
+                    length: 900
+                  - name: RepositoryPushCount
+                    statistics: [Sum]
+                    period: 300
+                    length: 900
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
