@@ -1,0 +1,114 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dashboard-namiview-aws
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  namiview-aws.json: |
+    {
+      "uid": "namiview-aws",
+      "title": "Namiview · AWS (sqs / s3 / ecr)",
+      "tags": ["namiview", "aws"],
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "1m",
+      "time": {"from": "now-6h", "to": "now"},
+      "panels": [
+        {
+          "id": 1,
+          "title": "SQS messages visible by queue",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+          "targets": [
+            {"expr": "aws_sqs_approximate_number_of_messages_visible_average",
+             "legendFormat": "{{dimension_QueueName}}"}
+          ]
+        },
+        {
+          "id": 2,
+          "title": "SQS age of oldest message (s)",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+          "fieldConfig": {"defaults": {"unit": "s"}},
+          "targets": [
+            {"expr": "aws_sqs_approximate_age_of_oldest_message_maximum",
+             "legendFormat": "{{dimension_QueueName}}"}
+          ]
+        },
+        {
+          "id": 3,
+          "title": "SQS in-flight (received but not deleted)",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
+          "targets": [
+            {"expr": "aws_sqs_approximate_number_of_messages_not_visible_average",
+             "legendFormat": "{{dimension_QueueName}}"}
+          ]
+        },
+        {
+          "id": 4,
+          "title": "SQS throughput (5m sum)",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8},
+          "targets": [
+            {"expr": "aws_sqs_number_of_messages_sent_sum",
+             "legendFormat": "sent · {{dimension_QueueName}}"},
+            {"expr": "aws_sqs_number_of_messages_received_sum",
+             "legendFormat": "received · {{dimension_QueueName}}"},
+            {"expr": "aws_sqs_number_of_messages_deleted_sum",
+             "legendFormat": "deleted · {{dimension_QueueName}}"}
+          ]
+        },
+        {
+          "id": 5,
+          "title": "S3 bucket size (bytes)",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 0, "y": 16, "w": 12, "h": 8},
+          "fieldConfig": {"defaults": {"unit": "bytes"}},
+          "targets": [
+            {"expr": "aws_s3_bucket_size_bytes_average",
+             "legendFormat": "{{dimension_BucketName}}"}
+          ]
+        },
+        {
+          "id": 6,
+          "title": "S3 object count",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 12, "y": 16, "w": 12, "h": 8},
+          "targets": [
+            {"expr": "aws_s3_number_of_objects_average",
+             "legendFormat": "{{dimension_BucketName}}"}
+          ]
+        },
+        {
+          "id": 7,
+          "title": "ECR pulls (5m sum)",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 0, "y": 24, "w": 12, "h": 8},
+          "targets": [
+            {"expr": "aws_ecr_repository_pull_count_sum",
+             "legendFormat": "{{dimension_RepositoryName}}"}
+          ]
+        },
+        {
+          "id": 8,
+          "title": "ECR pushes (5m sum)",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 12, "y": 24, "w": 12, "h": 8},
+          "targets": [
+            {"expr": "aws_ecr_repository_push_count_sum",
+             "legendFormat": "{{dimension_RepositoryName}}"}
+          ]
+        }
+      ]
+    }
