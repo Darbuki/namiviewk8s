@@ -21,13 +21,37 @@ spec:
           auth_enabled: false
           commonConfig:
             replication_factor: 1
+          # Chunks + ruler/admin → s3 (namiview-loki-logs, eu-west-1).
+          # Credentials are injected as env vars via singleBinary.extraEnv
+          # below; the chart reads AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY
+          # from the pod env (same pattern yace uses for CloudWatch).
           storage:
-            type: filesystem
+            type: s3
+            bucketNames:
+              chunks: namiview-loki-logs
+              ruler: namiview-loki-logs
+              admin: namiview-loki-logs
+            s3:
+              region: eu-west-1
+              s3forcepathstyle: false
+          # Two schema entries:
+          #   - 2024-04-01..2026-05-27: filesystem chunks on the local-path
+          #     PVC. Kept for historical context; these chunks are NOT
+          #     queryable once we cut over (filesystem store is removed),
+          #     but the PVC itself is left mounted for forensic recovery.
+          #   - 2026-05-28 onwards: tsdb on s3.
           schemaConfig:
             configs:
               - from: "2024-04-01"
                 store: tsdb
                 object_store: filesystem
+                schema: v13
+                index:
+                  prefix: loki_index_
+                  period: 24h
+              - from: "2026-05-28"
+                store: tsdb
+                object_store: s3
                 schema: v13
                 index:
                   prefix: loki_index_
@@ -48,11 +72,30 @@ spec:
         # ── Single-binary deployment ──────────────────────────────────────
         singleBinary:
           replicas: 1
+          # PVC stays mounted: Loki uses it for WAL + ingester-side state
+          # even when chunks live in s3. Old filesystem chunks remain on
+          # disk for forensic recovery (not queryable after the cutover).
           persistence:
             enabled: true
             storageClass: local-path
             accessModes: ["ReadWriteOnce"]
             size: 30Gi
+          # AWS creds for s3 storage. Copy the bootstrap secret into the
+          # monitoring namespace once at install time (same one-liner used
+          # for yace):
+          #   kubectl get secret aws-credentials -n external-secrets -o yaml \
+          #     | sed '/namespace:/d' | kubectl apply -n monitoring -f -
+          extraEnv:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aws-credentials
+                  key: access-key-id
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aws-credentials
+                  key: secret-access-key
           resources:
             requests:
               cpu: 100m
