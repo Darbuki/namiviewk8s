@@ -7,14 +7,14 @@ spec:
   project: namiview
   sources:
     - repoURL: https://github.com/Darbuki/namiview-charts.git
-      targetRevision: 103-hybrid-homelab-aws-move-compute-from-eks-to-homelab
+      targetRevision: main
       path: charts/namiview-worker
       helm:
         valueFiles:
           - values.yaml
           - $values/apps-homelab-dev/namiview-worker/values.yaml
     - repoURL: https://github.com/Darbuki/namiviewk8s.git
-      targetRevision: 103-hybrid-homelab-aws-move-compute-from-eks-to-homelab
+      targetRevision: main
       ref: values
   destination:
     server: https://kubernetes.default.svc
