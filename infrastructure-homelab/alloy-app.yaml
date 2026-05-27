@@ -1,0 +1,131 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: alloy
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  project: namiview
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: alloy
+    targetRevision: 1.8.1
+    helm:
+      valuesObject:
+        # ── Alloy controller: DaemonSet (one collector per node) ──────────
+        controller:
+          type: daemonset
+
+        # ── Pipeline: discover pod logs → relabel → push to Loki ──────────
+        alloy:
+          configMap:
+            create: true
+            content: |
+              // Pull container logs from kubelet via /var/log/pods.
+              discovery.kubernetes "pods" {
+                role = "pod"
+              }
+
+              // Standard k8s pod → Loki label mapping.
+              discovery.relabel "pod_logs" {
+                targets = discovery.kubernetes.pods.targets
+
+                // Keep only pods scheduled on this Alloy's node.
+                rule {
+                  source_labels = ["__meta_kubernetes_pod_node_name"]
+                  target_label  = "__host__"
+                }
+                rule {
+                  source_labels = ["__meta_kubernetes_namespace"]
+                  target_label  = "namespace"
+                }
+                rule {
+                  source_labels = ["__meta_kubernetes_pod_name"]
+                  target_label  = "pod"
+                }
+                rule {
+                  source_labels = ["__meta_kubernetes_pod_container_name"]
+                  target_label  = "container"
+                }
+                // Map app.kubernetes.io/name → service label so dashboards can
+                // pivot on `service="api"` / `service="worker"` consistently.
+                rule {
+                  source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+                  target_label  = "service"
+                }
+                // Fall back to the `app` label when app.kubernetes.io/name is empty.
+                rule {
+                  source_labels = ["service", "__meta_kubernetes_pod_label_app"]
+                  separator     = ";"
+                  regex         = ";(.+)"
+                  target_label  = "service"
+                  replacement   = "$1"
+                }
+              }
+
+              // Tail the actual log files on disk.
+              loki.source.kubernetes "pods" {
+                targets    = discovery.relabel.pod_logs.output
+                forward_to = [loki.process.pods.receiver]
+              }
+
+              // Light processing: parse JSON event field if present (structlog),
+              // otherwise pass through as a plain line.
+              loki.process "pods" {
+                forward_to = [loki.write.default.receiver]
+
+                stage.match {
+                  // Only try JSON parse on lines that look like JSON.
+                  selector = "{service=~\"api|worker\"}"
+                  stage.json {
+                    expressions = {
+                      level     = "level",
+                      event     = "event",
+                      logger    = "logger",
+                      request_id = "request_id",
+                      job_id    = "job_id",
+                    }
+                  }
+                  // Promote the parsed level to a Loki label for easy filtering.
+                  stage.labels {
+                    values = {
+                      level = "",
+                    }
+                  }
+                }
+              }
+
+              loki.write "default" {
+                endpoint {
+                  url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
+                }
+              }
+
+          # Mount /var/log so we can read kubelet pod logs.
+          mounts:
+            varlog: true
+
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+
+        # Expose Alloy's own metrics to Prometheus.
+        serviceMonitor:
+          enabled: true
+          additionalLabels:
+            release: monitoring-stack
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

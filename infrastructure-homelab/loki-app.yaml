@@ -1,0 +1,102 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: loki
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: namiview
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: loki
+    targetRevision: 7.0.0
+    helm:
+      valuesObject:
+        deploymentMode: SingleBinary
+
+        # ── Loki core config ──────────────────────────────────────────────
+        loki:
+          # Anonymous, single-tenant mode — fine for a homelab.
+          auth_enabled: false
+          commonConfig:
+            replication_factor: 1
+          storage:
+            type: filesystem
+          schemaConfig:
+            configs:
+              - from: "2024-04-01"
+                store: tsdb
+                object_store: filesystem
+                schema: v13
+                index:
+                  prefix: loki_index_
+                  period: 24h
+
+        # Single-binary chunk cache is in-process; disable memcached/results
+        # cache so we don't pull in extra workloads we don't need on one node.
+        # (These are root-level keys in the grafana/loki chart, not under `loki:`.)
+        chunksCache:
+          enabled: false
+        resultsCache:
+          enabled: false
+
+        # Canary pushes test logs to Loki — not useful on a single node.
+        lokiCanary:
+          enabled: false
+
+        # ── Single-binary deployment ──────────────────────────────────────
+        singleBinary:
+          replicas: 1
+          persistence:
+            enabled: true
+            storageClass: local-path
+            accessModes: ["ReadWriteOnce"]
+            size: 30Gi
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+
+        # ── Disable the scalable-mode components (we're single-binary) ────
+        read:
+          replicas: 0
+        write:
+          replicas: 0
+        backend:
+          replicas: 0
+
+        # ── Disable extras we don't need on a homelab ─────────────────────
+        # Self-monitoring stack pulls in Grafana Agent; we ship logs via Alloy.
+        monitoring:
+          selfMonitoring:
+            enabled: false
+            grafanaAgent:
+              installOperator: false
+
+        # Disable the test pod so we don't get a leftover Helm test artifact.
+        test:
+          enabled: false
+
+        # Gateway (nginx in front of Loki) — we don't need it for in-cluster scrape.
+        gateway:
+          enabled: false
+
+        # Expose a ServiceMonitor so Prometheus scrapes Loki's own metrics.
+        serviceMonitor:
+          enabled: true
+          labels:
+            release: monitoring-stack
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

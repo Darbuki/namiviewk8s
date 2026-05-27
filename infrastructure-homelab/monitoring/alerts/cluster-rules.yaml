@@ -1,0 +1,77 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: cluster-rules
+  namespace: monitoring
+  labels:
+    release: monitoring-stack
+spec:
+  groups:
+    - name: cluster-health
+      interval: 30s
+      rules:
+        - alert: NodeMemoryHigh
+          expr: |
+            (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.9
+          for: 10m
+          labels:
+            severity: warning
+            component: node
+          annotations:
+            summary: "k3s node memory usage > 90%"
+            description: "Node {{ $labels.instance }} is at {{ $value | humanizePercentage }} memory usage; consider trimming workloads or VM resources."
+
+        - alert: NodeDiskHigh
+          expr: |
+            (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|fuse.*"} / node_filesystem_size_bytes{fstype!~"tmpfs|fuse.*"})) > 0.85
+          for: 15m
+          labels:
+            severity: warning
+            component: node
+          annotations:
+            summary: "disk usage > 85% on {{ $labels.mountpoint }}"
+            description: "{{ $labels.instance }} {{ $labels.mountpoint }} is {{ $value | humanizePercentage }} full."
+
+        - alert: PrometheusStorageLow
+          expr: |
+            (prometheus_tsdb_storage_blocks_bytes / on(instance) kubelet_volume_stats_capacity_bytes{namespace="monitoring", persistentvolumeclaim=~".*prometheus.*"}) > 0.8
+          for: 30m
+          labels:
+            severity: warning
+            component: prometheus
+          annotations:
+            summary: "prometheus PV > 80% full"
+            description: "Prometheus TSDB approaching PV capacity. Reduce retention or grow the PV."
+
+        - alert: ArgoCDAppOutOfSync
+          expr: |
+            argocd_app_info{sync_status!="Synced"} == 1
+          for: 30m
+          labels:
+            severity: warning
+            component: argocd
+          annotations:
+            summary: "argocd app {{ $labels.name }} out of sync for 30m"
+            description: "Application {{ $labels.name }} in project {{ $labels.project }} has been {{ $labels.sync_status }} for over 30 minutes. selfHeal may not be applying."
+
+        - alert: ArgoCDAppUnhealthy
+          expr: |
+            argocd_app_info{health_status!~"Healthy|Progressing"} == 1
+          for: 15m
+          labels:
+            severity: critical
+            component: argocd
+          annotations:
+            summary: "argocd app {{ $labels.name }} unhealthy: {{ $labels.health_status }}"
+            description: "Application has been {{ $labels.health_status }} for 15m."
+
+        - alert: ExternalSecretSyncFailing
+          expr: |
+            externalsecret_status_condition{condition="Ready", status="False"} == 1
+          for: 15m
+          labels:
+            severity: critical
+            component: eso
+          annotations:
+            summary: "ExternalSecret {{ $labels.namespace }}/{{ $labels.name }} failing to sync"
+            description: "ESO cannot pull the secret from AWS Secrets Manager. Check IAM permissions and SM path."

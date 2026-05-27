@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasource-loki
+  namespace: monitoring
+  labels:
+    # Picked up by the Grafana datasource sidecar (kube-prometheus-stack).
+    grafana_datasource: "1"
+data:
+  loki-datasource.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Loki
+        type: loki
+        access: proxy
+        uid: loki
+        url: http://loki.monitoring.svc.cluster.local:3100
+        jsonData:
+          maxLines: 1000
+          # Link Loki traces/logs ↔ Prometheus by request_id so we can pivot
+          # from a metric spike to the matching log lines.
+          derivedFields:
+            - name: request_id
+              matcherRegex: '"request_id":"([^"]+)"'
+              url: '$${__value.raw}'
+              datasourceUid: prometheus

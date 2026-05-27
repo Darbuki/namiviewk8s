@@ -1,0 +1,90 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dashboard-namiview-storage
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  namiview-storage.json: |
+    {
+      "uid": "namiview-storage",
+      "title": "Namiview · Storage (mongo / s3 / sqs)",
+      "tags": ["namiview"],
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "30s",
+      "time": {"from": "now-1h", "to": "now"},
+      "templating": {
+        "list": [
+          {
+            "name": "namespace",
+            "type": "query",
+            "datasource": {"type": "prometheus", "uid": "prometheus"},
+            "query": "label_values(namiview_storage_op_duration_seconds_count, namespace)",
+            "current": {"text": "namiview-dev", "value": "namiview-dev"},
+            "refresh": 1
+          }
+        ]
+      },
+      "panels": [
+        {
+          "id": 1,
+          "title": "Op rate /min by backend",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+          "targets": [
+            {"expr": "sum by (backend) (rate(namiview_storage_op_duration_seconds_count{namespace=\"$namespace\"}[5m])) * 60",
+             "legendFormat": "{{backend}}"}
+          ]
+        },
+        {
+          "id": 2,
+          "title": "Error rate /min by backend",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+          "targets": [
+            {"expr": "sum by (backend) (rate(namiview_storage_op_errors_total{namespace=\"$namespace\"}[5m])) * 60",
+             "legendFormat": "{{backend}}"}
+          ]
+        },
+        {
+          "id": 3,
+          "title": "Mongo p95 latency by op",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
+          "targets": [
+            {"expr": "histogram_quantile(0.95, sum by (operation, le) (rate(namiview_storage_op_duration_seconds_bucket{namespace=\"$namespace\", backend=\"mongo\"}[5m])))",
+             "legendFormat": "{{operation}}"}
+          ],
+          "fieldConfig": {"defaults": {"unit": "s"}}
+        },
+        {
+          "id": 4,
+          "title": "S3 p95 latency by op",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8},
+          "targets": [
+            {"expr": "histogram_quantile(0.95, sum by (operation, le) (rate(namiview_storage_op_duration_seconds_bucket{namespace=\"$namespace\", backend=\"s3\"}[5m])))",
+             "legendFormat": "{{operation}}"}
+          ],
+          "fieldConfig": {"defaults": {"unit": "s"}}
+        },
+        {
+          "id": 5,
+          "title": "SQS p95 latency by op",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 0, "y": 16, "w": 12, "h": 8},
+          "targets": [
+            {"expr": "histogram_quantile(0.95, sum by (operation, le) (rate(namiview_storage_op_duration_seconds_bucket{namespace=\"$namespace\", backend=\"sqs\"}[5m])))",
+             "legendFormat": "{{operation}}"}
+          ],
+          "fieldConfig": {"defaults": {"unit": "s"}}
+        }
+      ]
+    }

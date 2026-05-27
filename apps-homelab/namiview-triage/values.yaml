@@ -1,0 +1,43 @@
+image:
+  repository: 015301735477.dkr.ecr.eu-west-1.amazonaws.com/namiview-triage
+  tag: latest
+
+imagePullSecrets:
+  - name: regcred
+
+app:
+  githubRepo: Darbuki/namiview
+
+externalSecrets:
+  clusterSecretStore: aws-secrets-manager
+  paths:
+    anthropic: namiview-prod/anthropic-api-key
+    github: namiview-prod/triage-agent-github-pat
+
+alertmanagerConfig:
+  enabled: true
+  alertnames:
+    # k8s standard signals
+    - KubePodCrashLooping
+    - KubeContainerWaiting
+    - KubePodNotReady
+    - KubePodOOMKilled
+    # namiview app + cluster rules
+    - HighHTTPErrorRate
+    - APIPodCrashLoop
+    - WorkerJobFailureRate
+    - WorkerDown
+    - WorkerJobsStalled
+    - AtlasIPSyncStale
+    - ECRRefreshStale
+    - NodeMemoryHigh
+    - NodeDiskHigh
+    - ArgoCDAppOutOfSync
+    - ArgoCDAppUnhealthy
+    - ExternalSecretSyncFailing
+  groupWait: 30s
+  groupInterval: 5m
+  repeatInterval: 12h
+
+networkPolicy:
+  enabled: false

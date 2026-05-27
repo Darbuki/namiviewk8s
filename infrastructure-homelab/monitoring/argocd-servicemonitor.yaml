@@ -1,0 +1,17 @@
+# The argo-cd Helm chart only renders its built-in ServiceMonitors when Helm
+# sees the monitoring.coreos.com/v1 API at template-render time. Our Terraform
+# helm_release rendering doesn't include that check, so the chart's SMs end up
+# skipped. Workaround: one explicit ServiceMonitor matching every argocd
+# metric Service (they all expose port `http-metrics` and share part-of=argocd).
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: argocd
+  namespace: argocd
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/part-of: argocd
+  endpoints:
+    - port: http-metrics
+      interval: 30s

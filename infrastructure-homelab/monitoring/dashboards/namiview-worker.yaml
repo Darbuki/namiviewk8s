@@ -1,0 +1,99 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dashboard-namiview-worker
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  namiview-worker.json: |
+    {
+      "uid": "namiview-worker",
+      "title": "Namiview · Worker",
+      "tags": ["namiview"],
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "30s",
+      "time": {"from": "now-1h", "to": "now"},
+      "templating": {
+        "list": [
+          {
+            "name": "namespace",
+            "type": "query",
+            "datasource": {"type": "prometheus", "uid": "prometheus"},
+            "query": "label_values(namiview_worker_poll_iterations_total, namespace)",
+            "current": {"text": "namiview-dev", "value": "namiview-dev"},
+            "refresh": 1
+          }
+        ]
+      },
+      "panels": [
+        {
+          "id": 1,
+          "title": "Jobs in-flight",
+          "type": "stat",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 0, "y": 0, "w": 6, "h": 6},
+          "targets": [
+            {"expr": "sum(namiview_worker_jobs_in_flight{namespace=\"$namespace\"})", "legendFormat": "in-flight"}
+          ]
+        },
+        {
+          "id": 2,
+          "title": "Jobs received (rate /min)",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 6, "y": 0, "w": 9, "h": 6},
+          "targets": [
+            {"expr": "sum(rate(namiview_worker_jobs_received_total{namespace=\"$namespace\"}[5m])) * 60",
+             "legendFormat": "received/min"}
+          ]
+        },
+        {
+          "id": 3,
+          "title": "Completion outcome rate /min",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 15, "y": 0, "w": 9, "h": 6},
+          "targets": [
+            {"expr": "sum by (status) (rate(namiview_worker_jobs_completed_total{namespace=\"$namespace\"}[5m])) * 60",
+             "legendFormat": "{{status}}"}
+          ]
+        },
+        {
+          "id": 4,
+          "title": "Job duration p50/p95",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 0, "y": 6, "w": 12, "h": 8},
+          "targets": [
+            {"expr": "histogram_quantile(0.50, sum by (le) (rate(namiview_worker_job_duration_seconds_bucket{namespace=\"$namespace\"}[5m])))",
+             "legendFormat": "p50"},
+            {"expr": "histogram_quantile(0.95, sum by (le) (rate(namiview_worker_job_duration_seconds_bucket{namespace=\"$namespace\"}[5m])))",
+             "legendFormat": "p95"}
+          ],
+          "fieldConfig": {"defaults": {"unit": "s"}}
+        },
+        {
+          "id": 5,
+          "title": "SQS poll outcomes /min",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 12, "y": 6, "w": 12, "h": 8},
+          "targets": [
+            {"expr": "sum by (result) (rate(namiview_worker_poll_iterations_total{namespace=\"$namespace\"}[5m])) * 60",
+             "legendFormat": "{{result}}"}
+          ]
+        },
+        {
+          "id": 6,
+          "title": "Worker pods up",
+          "type": "stat",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 0, "y": 14, "w": 6, "h": 4},
+          "targets": [
+            {"expr": "sum(up{job=~\"namiview-worker.*\"} == 1)", "legendFormat": "up"}
+          ]
+        }
+      ]
+    }

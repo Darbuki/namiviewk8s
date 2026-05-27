@@ -1,0 +1,102 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: namiview-app-rules
+  namespace: monitoring
+  labels:
+    release: monitoring-stack
+spec:
+  groups:
+    - name: namiview-api
+      interval: 30s
+      rules:
+        - alert: HighHTTPErrorRate
+          expr: |
+            sum by (namespace) (rate(http_requests_total{handler=~"/api.*", status=~"5.."}[5m]))
+            /
+            sum by (namespace) (rate(http_requests_total{handler=~"/api.*"}[5m]))
+            > 0.05
+          for: 5m
+          labels:
+            severity: warning
+            component: api
+          annotations:
+            summary: "namiview-api 5xx rate above 5% in {{ $labels.namespace }}"
+            description: "{{ $value | humanizePercentage }} of /api/* requests returned 5xx over the last 5m."
+
+        - alert: APIPodCrashLoop
+          expr: |
+            sum by (namespace, pod) (rate(kube_pod_container_status_restarts_total{namespace=~"namiview(-dev)?", pod=~"namiview-api.*"}[15m])) > 0
+          for: 10m
+          labels:
+            severity: critical
+            component: api
+          annotations:
+            summary: "namiview-api pod {{ $labels.pod }} restarting"
+            description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} restarted in the last 15m; investigate `kubectl logs --previous`."
+
+    - name: namiview-worker
+      interval: 30s
+      rules:
+        - alert: WorkerJobFailureRate
+          expr: |
+            sum by (namespace) (rate(namiview_worker_jobs_completed_total{status!="success"}[10m]))
+            /
+            sum by (namespace) (rate(namiview_worker_jobs_completed_total[10m]))
+            > 0.1
+          for: 10m
+          labels:
+            severity: warning
+            component: worker
+          annotations:
+            summary: "namiview-worker failure rate above 10% in {{ $labels.namespace }}"
+            description: "{{ $value | humanizePercentage }} of worker jobs are failing over the last 10m."
+
+        - alert: WorkerDown
+          expr: |
+            up{job=~"namiview-worker.*"} == 0
+          for: 5m
+          labels:
+            severity: critical
+            component: worker
+          annotations:
+            summary: "namiview-worker scrape target down: {{ $labels.namespace }}/{{ $labels.instance }}"
+            description: "Prometheus cannot scrape the worker metrics endpoint. Pod down or metrics server not running."
+
+        - alert: WorkerJobsStalled
+          expr: |
+            avg_over_time(namiview_worker_jobs_in_flight[15m]) > 0
+            and
+            sum by (namespace) (rate(namiview_worker_jobs_completed_total[15m])) == 0
+          for: 15m
+          labels:
+            severity: warning
+            component: worker
+          annotations:
+            summary: "worker has in-flight jobs but none completing in {{ $labels.namespace }}"
+            description: "Jobs are in flight for 15m+ with zero completion rate. Likely a hang or model load issue."
+
+    - name: namiview-cronjobs
+      interval: 30s
+      rules:
+        - alert: AtlasIPSyncStale
+          expr: |
+            time() - kube_cronjob_status_last_successful_time{cronjob="atlas-ip-sync"} > 3600
+          for: 0m
+          labels:
+            severity: critical
+            component: cronjob
+          annotations:
+            summary: "atlas-ip-sync hasn't succeeded in over 1h"
+            description: "If this stays red, MongoDB Atlas will eventually block writes when our public IP rotates."
+
+        - alert: ECRRefreshStale
+          expr: |
+            time() - kube_cronjob_status_last_successful_time{cronjob="ecr-refresh"} > 25200
+          for: 0m
+          labels:
+            severity: warning
+            component: cronjob
+          annotations:
+            summary: "ecr-refresh stale in {{ $labels.namespace }} (>7h since success)"
+            description: "Pull secret will expire (12h ECR token TTL). Image pulls will start failing soon."

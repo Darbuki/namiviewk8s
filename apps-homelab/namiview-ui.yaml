@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: namiview-ui
+  namespace: argocd
+spec:
+  project: namiview
+  sources:
+    - repoURL: https://github.com/Darbuki/namiview-charts.git
+      targetRevision: 103-hybrid-homelab-aws-move-compute-from-eks-to-homelab
+      path: charts/namiview-ui
+      helm:
+        valueFiles:
+          - values.yaml
+          - $values/apps-homelab/namiview-ui/values.yaml
+    - repoURL: https://github.com/Darbuki/namiviewk8s.git
+      targetRevision: 103-hybrid-homelab-aws-move-compute-from-eks-to-homelab
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: namiview
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
