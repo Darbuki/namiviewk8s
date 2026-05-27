@@ -35,11 +35,16 @@ spec:
               region: eu-west-1
               s3forcepathstyle: false
           # Two schema entries:
-          #   - 2024-04-01..2026-05-27: filesystem chunks on the local-path
+          #   - 2024-04-01..2026-05-26: filesystem chunks on the local-path
           #     PVC. Kept for historical context; these chunks are NOT
           #     queryable once we cut over (filesystem store is removed),
           #     but the PVC itself is left mounted for forensic recovery.
-          #   - 2026-05-28 onwards: tsdb on s3.
+          #   - 2026-05-27 onwards: tsdb on s3.
+          #     (Originally planned for 2026-05-28 but moved up — the chart's
+          #     new top-level `storage.type: s3` unset the filesystem chunks
+          #     directory, so the old schema's writes were failing with
+          #     `mkdir fake: read-only file system`. Cutting over today makes
+          #     all new writes go to S3 immediately.)
           schemaConfig:
             configs:
               - from: "2024-04-01"
@@ -49,7 +54,7 @@ spec:
                 index:
                   prefix: loki_index_
                   period: 24h
-              - from: "2026-05-28"
+              - from: "2026-05-27"
                 store: tsdb
                 object_store: s3
                 schema: v13
