@@ -56,9 +56,15 @@ spec:
               # ── SQS ───────────────────────────────────────────────────
               # Per-queue depth, in-flight, and age of oldest message.
               # Drives the worker lag dashboard + alerts.
+              # searchTags: tag:GetResources returns only tagged resources;
+              # all our TF-managed AWS resources carry Project=namiview via
+              # the provider's default_tags block.
               - type: AWS/SQS
                 regions:
                   - eu-west-1
+                searchTags:
+                  - key: Project
+                    value: namiview
                 metrics:
                   - name: ApproximateNumberOfMessagesVisible
                     statistics: [Average, Maximum]
@@ -90,6 +96,9 @@ spec:
               - type: AWS/S3
                 regions:
                   - eu-west-1
+                searchTags:
+                  - key: Project
+                    value: namiview
                 metrics:
                   - name: BucketSizeBytes
                     statistics: [Average]
@@ -106,6 +115,9 @@ spec:
               - type: AWS/ECR
                 regions:
                   - eu-west-1
+                searchTags:
+                  - key: Project
+                    value: namiview
                 metrics:
                   - name: RepositoryPullCount
                     statistics: [Sum]
