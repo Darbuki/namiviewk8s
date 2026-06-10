@@ -2,7 +2,7 @@ nameOverride: namiview-worker-dev
 replicaCount: 1
 image:
   repository: 015301735477.dkr.ecr.eu-west-1.amazonaws.com/namiview-worker
-  tag: "dev-2a4769c"
+  tag: "dev-b2a7949"
 resources:
   requests:
     cpu: 250m
