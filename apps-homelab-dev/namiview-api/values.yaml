@@ -42,6 +42,10 @@ app:
     atlas: true
     host: namiview.pj6elop.mongodb.net
     appName: namiview-dev
+    # Isolate dev's images onto `dev-images`; without this dev shares prod's
+    # default `images` collection (same Atlas DB) and dev deletes/tests wipe
+    # prod gallery images. Must match the worker (apps-homelab-dev/namiview-worker).
+    collection: "dev-images"
     # Must match the worker's collection (apps-homelab-dev/namiview-worker)
     # or the API reads "jobs" while the worker writes "dev-jobs" → status
     # never reaches the UI and uploads hang. (prod: both default to "jobs".)

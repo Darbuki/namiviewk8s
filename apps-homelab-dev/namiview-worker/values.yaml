@@ -32,6 +32,9 @@ app:
     atlas: true
     host: namiview.pj6elop.mongodb.net
     appName: namiview-dev
+    # Isolate dev's images onto `dev-images` (matches namiview-api). Requires the
+    # MONGO_COLLECTION knob added to the namiview-worker chart.
+    collection: "dev-images"
     jobsCollection: "dev-jobs"
 vault:
   clusterSecretStore: aws-secrets-manager
