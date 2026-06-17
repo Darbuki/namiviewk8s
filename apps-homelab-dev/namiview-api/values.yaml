@@ -34,7 +34,9 @@ vault:
     mongodb: namiview-prod/mongodb
     mongodbDb: namiview-prod/mongodb
     googleCreds: namiview-prod/google-creds
-    jwt: namiview-prod/jwt
+    # dev signs JWTs with its own secret so dev-minted tokens are invalid in
+    # prod. Requires namiview-prod/dev-jwt to exist (namiview-terraform#20). (namiview#285)
+    jwt: namiview-prod/dev-jwt
 app:
   googleRedirectUri: "https://dev.namiview.com/api/auth/callback"
   corsOrigins: "https://dev.namiview.com"
