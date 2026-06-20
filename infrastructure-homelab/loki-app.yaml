@@ -34,22 +34,21 @@ spec:
             s3:
               region: eu-west-1
               s3forcepathstyle: false
-          # Two schema entries:
-          #   - 2024-04-01..2026-05-27: filesystem chunks on the local-path
-          #     PVC. Kept for historical context; these chunks are NOT
-          #     queryable once we cut over (filesystem store is removed),
-          #     but the PVC itself is left mounted for forensic recovery.
-          #   - 2026-05-28 onwards: tsdb on s3.
+          # Single schema entry, everything on s3.
+          #
+          # DO NOT re-add a `filesystem` object_store period here. The old
+          # config kept a filesystem period (2024-04-01..2026-05-27) active
+          # after the s3 cutover, but `storage.type: s3` wires no filesystem
+          # chunks directory — so Loki fell back to RELATIVE paths and tried
+          # to `mkdir fake/` (chunks) and `mkdir index/` against the
+          # container's read-only root (`readOnlyRootFilesystem: true`),
+          # EROFS-ing every flush and leaving loki-0 stuck 1/2 Ready.
+          # Collapsing to one s3 period removes the filesystem store entirely.
+          # Pre-cutover filesystem chunks were never queryable post-cutover
+          # anyway (they only ever lived on the now-orphaned local PVC).
           schemaConfig:
             configs:
               - from: "2024-04-01"
-                store: tsdb
-                object_store: filesystem
-                schema: v13
-                index:
-                  prefix: loki_index_
-                  period: 24h
-              - from: "2026-05-28"
                 store: tsdb
                 object_store: s3
                 schema: v13
