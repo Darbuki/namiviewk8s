@@ -52,6 +52,8 @@ app:
     # or the API reads "jobs" while the worker writes "dev-jobs" → status
     # never reaches the UI and uploads hang. (prod: both default to "jobs".)
     jobsCollection: "dev-jobs"
+  # Dev model lineup — only Physics (Light) + Namiview v2 (model feature flags).
+  enabledModels: "physics-light,nami-v2"
 jobs:
   queueUrl: "https://sqs.eu-west-1.amazonaws.com/015301735477/namiview-prod-dev-jobs"
 metrics:
