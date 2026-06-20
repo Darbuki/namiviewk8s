@@ -1,5 +1,13 @@
 # Namiview Project Guide for Agents
 
+> **⚠️ START HERE → the project front door is `ONBOARDING.md` in the `namiview` repo.**
+> Live platform = homelab **k3s** + AWS-managed services (see `namiview/docs/architecture-current.md`).
+> This repo is the **GitOps source of truth**: the live app sets are **`apps-homelab/`**
+> (prod) and **`apps-homelab-dev/`** (dev); the `apps/` + `bootstrap/` overlays are
+> **EKS-era and dormant**, kept for revival (`namiview/docs/eks-revival.md`). Some text
+> below reflects the earlier EKS/kubeadm setup — trust the `*-homelab` dirs + the front
+> door for what's live. *(banner added 2026-06-20)*
+
 This document explains the Namiview project: how to develop locally, how deployment works, and how the infrastructure is structured.
 
 ---
