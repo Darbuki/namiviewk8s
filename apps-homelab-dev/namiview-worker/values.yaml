@@ -36,8 +36,8 @@ app:
     # MONGO_COLLECTION knob added to the namiview-worker chart.
     collection: "dev-images"
     jobsCollection: "dev-jobs"
-  # Dev model lineup — Physics (Light) + Namiview v2 + AI Balanced (feature flags).
-  enabledModels: "physics-light,nami-v2,balanced"
+  # Dev model lineup — AI Natural + AI Balanced + Namiview v2 (feature flags).
+  enabledModels: "natural,balanced,nami-v2"
 vault:
   clusterSecretStore: aws-secrets-manager
   refreshInterval: "1h"
