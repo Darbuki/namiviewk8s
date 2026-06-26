@@ -37,6 +37,8 @@ vault:
 app:
   googleRedirectUri: "https://namiview.com/api/auth/callback"
   corsOrigins: "https://namiview.com"
+  # Prod model lineup: Nami v2 + Physics (Light) only. Must match the worker.
+  enabledModels: "nami-v2,physics-light"
   mongo:
     atlas: true
     host: namiview.pj6elop.mongodb.net
