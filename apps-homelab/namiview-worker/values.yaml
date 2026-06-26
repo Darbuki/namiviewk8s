@@ -27,6 +27,8 @@ serviceAccount:
 jobs:
   queueUrl: "https://sqs.eu-west-1.amazonaws.com/015301735477/namiview-prod-jobs"
 app:
+  # Prod model lineup: Nami v2 + Physics (Light) only. Must match the API.
+  enabledModels: "nami-v2,physics-light"
   mongo:
     atlas: true
     host: namiview.pj6elop.mongodb.net
