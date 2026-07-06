@@ -1,7 +1,7 @@
 replicaCount: 1
 image:
   repository: 015301735477.dkr.ecr.eu-west-1.amazonaws.com/namiview-worker
-  tag: "32b57e0"
+  tag: "ff094ee"
 resources:
   requests:
     cpu: 500m
