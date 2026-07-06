@@ -2,7 +2,7 @@ nameOverride: namiview-api-dev
 replicaCount: 1
 image:
   repository: 015301735477.dkr.ecr.eu-west-1.amazonaws.com/namiview-api
-  tag: "dev-f64f4b2"
+  tag: "dev-0c47192"
 resources:
   requests:
     cpu: 100m
