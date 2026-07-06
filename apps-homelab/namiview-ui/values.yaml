@@ -1,7 +1,7 @@
 replicaCount: 1
 image:
   repository: 015301735477.dkr.ecr.eu-west-1.amazonaws.com/namiview-ui
-  tag: "ff094ee"
+  tag: "cb7cbf6"
 imagePullSecrets:
   - name: regcred
 ingress:
