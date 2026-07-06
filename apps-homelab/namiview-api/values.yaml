@@ -1,7 +1,7 @@
 replicaCount: 1
 image:
   repository: 015301735477.dkr.ecr.eu-west-1.amazonaws.com/namiview-api
-  tag: "60a7163"
+  tag: "9d59682"
 resources:
   requests:
     cpu: 200m
