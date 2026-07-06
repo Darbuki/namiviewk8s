@@ -40,4 +40,7 @@ alertmanagerConfig:
   repeatInterval: 12h
 
 networkPolicy:
-  enabled: false
+  # Enabled so the unauthenticated /triage webhook is only reachable from the
+  # monitoring namespace (Alertmanager). k3s enforces NetworkPolicies natively.
+  # See Darbuki/namiview-agents#1 — app-layer HMAC is the durable follow-up.
+  enabled: true
