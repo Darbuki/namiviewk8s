@@ -1,0 +1,186 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dashboard-namiview-capacity
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  namiview-capacity.json: |
+    {
+      "uid": "namiview-capacity",
+      "title": "Namiview · Capacity & Scaling",
+      "tags": ["namiview", "capacity"],
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "30s",
+      "time": {"from": "now-3h", "to": "now"},
+      "templating": {"list": []},
+      "panels": [
+        {
+          "id": 100,
+          "type": "row",
+          "title": "Right-sizing — usage vs limit, can they handle less?",
+          "gridPos": {"x": 0, "y": 0, "w": 24, "h": 1}
+        },
+        {
+          "id": 1,
+          "title": "Current usage vs request vs limit (all namiview api+worker)",
+          "type": "table",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 0, "y": 1, "w": 24, "h": 9},
+          "options": {"showHeader": true},
+          "targets": [
+            {"refId": "USE", "instant": true, "format": "table", "expr": "max by (namespace, container) (container_memory_working_set_bytes{namespace=~\"namiview|namiview-dev\", container=~\"app|worker\"})"},
+            {"refId": "REQ", "instant": true, "format": "table", "expr": "max by (namespace, container) (kube_pod_container_resource_requests{namespace=~\"namiview|namiview-dev\", container=~\"app|worker\", resource=\"memory\"})"},
+            {"refId": "LIM", "instant": true, "format": "table", "expr": "max by (namespace, container) (kube_pod_container_resource_limits{namespace=~\"namiview|namiview-dev\", container=~\"app|worker\", resource=\"memory\"})"},
+            {"refId": "PEAK", "instant": true, "format": "table", "expr": "max by (namespace, container) (max_over_time(container_memory_working_set_bytes{namespace=~\"namiview|namiview-dev\", container=~\"app|worker\"}[24h]))"}
+          ],
+          "transformations": [
+            {"id": "merge", "options": {}},
+            {"id": "organize", "options": {"renameByName": {
+              "namespace": "Namespace", "container": "Container",
+              "Value #USE": "Usage now", "Value #REQ": "Request", "Value #LIM": "Limit", "Value #PEAK": "Peak (24h)"
+            }, "excludeByName": {"Time": true}}},
+            {"id": "calculateField", "options": {"alias": "Peak / Limit", "mode": "binary", "binary": {"left": "Peak (24h)", "operator": "/", "right": "Limit"}}}
+          ],
+          "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": [
+            {"matcher": {"id": "byName", "options": "Peak / Limit"}, "properties": [
+              {"id": "unit", "value": "percentunit"},
+              {"id": "custom.cellOptions", "value": {"type": "color-background"}},
+              {"id": "thresholds", "value": {"steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 0.6}, {"color": "red", "value": 0.85}]}}
+            ]}
+          ]}
+        },
+        {
+          "id": 200,
+          "type": "row",
+          "title": "Memory",
+          "gridPos": {"x": 0, "y": 10, "w": 24, "h": 1}
+        },
+        {
+          "id": 2,
+          "title": "Worker memory: usage vs limit (prod + dev)",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 0, "y": 11, "w": 12, "h": 8},
+          "fieldConfig": {"defaults": {"unit": "bytes"}},
+          "targets": [
+            {"expr": "max by (namespace) (container_memory_working_set_bytes{namespace=~\"namiview|namiview-dev\", container=\"worker\"})", "legendFormat": "{{namespace}} usage"},
+            {"expr": "max by (namespace) (kube_pod_container_resource_limits{namespace=~\"namiview|namiview-dev\", container=\"worker\", resource=\"memory\"})", "legendFormat": "{{namespace}} LIMIT"},
+            {"expr": "max by (namespace) (kube_pod_container_resource_requests{namespace=~\"namiview|namiview-dev\", container=\"worker\", resource=\"memory\"})", "legendFormat": "{{namespace}} request"}
+          ]
+        },
+        {
+          "id": 3,
+          "title": "API memory: usage vs limit (prod + dev)",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 12, "y": 11, "w": 12, "h": 8},
+          "fieldConfig": {"defaults": {"unit": "bytes"}},
+          "targets": [
+            {"expr": "max by (namespace) (container_memory_working_set_bytes{namespace=~\"namiview|namiview-dev\", container=\"app\"})", "legendFormat": "{{namespace}} usage"},
+            {"expr": "max by (namespace) (kube_pod_container_resource_limits{namespace=~\"namiview|namiview-dev\", container=\"app\", resource=\"memory\"})", "legendFormat": "{{namespace}} LIMIT"},
+            {"expr": "max by (namespace) (kube_pod_container_resource_requests{namespace=~\"namiview|namiview-dev\", container=\"app\", resource=\"memory\"})", "legendFormat": "{{namespace}} request"}
+          ]
+        },
+        {
+          "id": 4,
+          "title": "Worker peak mem (24h)",
+          "type": "stat",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 0, "y": 19, "w": 6, "h": 5},
+          "fieldConfig": {"defaults": {"unit": "bytes"}},
+          "targets": [{"expr": "max(max_over_time(container_memory_working_set_bytes{namespace=\"namiview\", container=\"worker\"}[24h]))", "legendFormat": "peak"}]
+        },
+        {
+          "id": 5,
+          "title": "Worker headroom (limit − peak)",
+          "type": "stat",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 6, "y": 19, "w": 6, "h": 5},
+          "fieldConfig": {"defaults": {"unit": "bytes", "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "yellow", "value": 1073741824}, {"color": "green", "value": 2147483648}]}}},
+          "targets": [{"expr": "max(kube_pod_container_resource_limits{namespace=\"namiview\", container=\"worker\", resource=\"memory\"}) - max(max_over_time(container_memory_working_set_bytes{namespace=\"namiview\", container=\"worker\"}[24h]))", "legendFormat": "headroom"}]
+        },
+        {
+          "id": 6,
+          "title": "API peak mem (24h)",
+          "type": "stat",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 12, "y": 19, "w": 6, "h": 5},
+          "fieldConfig": {"defaults": {"unit": "bytes"}},
+          "targets": [{"expr": "max(max_over_time(container_memory_working_set_bytes{namespace=\"namiview\", container=\"app\"}[24h]))", "legendFormat": "peak"}]
+        },
+        {
+          "id": 7,
+          "title": "API headroom (limit − peak)",
+          "type": "stat",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 18, "y": 19, "w": 6, "h": 5},
+          "fieldConfig": {"defaults": {"unit": "bytes", "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "yellow", "value": 268435456}, {"color": "green", "value": 536870912}]}}},
+          "targets": [{"expr": "max(kube_pod_container_resource_limits{namespace=\"namiview\", container=\"app\", resource=\"memory\"}) - max(max_over_time(container_memory_working_set_bytes{namespace=\"namiview\", container=\"app\"}[24h]))", "legendFormat": "headroom"}]
+        },
+        {
+          "id": 300,
+          "type": "row",
+          "title": "CPU",
+          "gridPos": {"x": 0, "y": 24, "w": 24, "h": 1}
+        },
+        {
+          "id": 8,
+          "title": "Worker CPU: usage vs limit (cores)",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 0, "y": 25, "w": 12, "h": 8},
+          "fieldConfig": {"defaults": {"unit": "none"}},
+          "targets": [
+            {"expr": "sum by (namespace) (rate(container_cpu_usage_seconds_total{namespace=~\"namiview|namiview-dev\", container=\"worker\"}[5m]))", "legendFormat": "{{namespace}} usage"},
+            {"expr": "max by (namespace) (kube_pod_container_resource_limits{namespace=~\"namiview|namiview-dev\", container=\"worker\", resource=\"cpu\"})", "legendFormat": "{{namespace}} LIMIT"}
+          ]
+        },
+        {
+          "id": 9,
+          "title": "API CPU: usage vs limit (cores)",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 12, "y": 25, "w": 12, "h": 8},
+          "fieldConfig": {"defaults": {"unit": "none"}},
+          "targets": [
+            {"expr": "sum by (namespace) (rate(container_cpu_usage_seconds_total{namespace=~\"namiview|namiview-dev\", container=\"app\"}[5m]))", "legendFormat": "{{namespace}} usage"},
+            {"expr": "max by (namespace) (kube_pod_container_resource_limits{namespace=~\"namiview|namiview-dev\", container=\"app\", resource=\"cpu\"})", "legendFormat": "{{namespace}} LIMIT"}
+          ]
+        },
+        {
+          "id": 400,
+          "type": "row",
+          "title": "Node ledger — how much room is left to scale",
+          "gridPos": {"x": 0, "y": 33, "w": 24, "h": 1}
+        },
+        {
+          "id": 10,
+          "title": "Node memory: requests vs actual usage vs allocatable",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 0, "y": 34, "w": 12, "h": 8},
+          "fieldConfig": {"defaults": {"unit": "bytes"}},
+          "targets": [
+            {"expr": "sum(kube_pod_container_resource_requests{resource=\"memory\"})", "legendFormat": "total requests"},
+            {"expr": "sum(container_memory_working_set_bytes{container!=\"\"})", "legendFormat": "total usage"},
+            {"expr": "sum(kube_node_status_allocatable{resource=\"memory\"})", "legendFormat": "ALLOCATABLE"}
+          ]
+        },
+        {
+          "id": 11,
+          "title": "Node CPU: requests vs actual usage vs allocatable",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 12, "y": 34, "w": 12, "h": 8},
+          "fieldConfig": {"defaults": {"unit": "none"}},
+          "targets": [
+            {"expr": "sum(kube_pod_container_resource_requests{resource=\"cpu\"})", "legendFormat": "total requests"},
+            {"expr": "sum(rate(container_cpu_usage_seconds_total{container!=\"\"}[5m]))", "legendFormat": "total usage"},
+            {"expr": "sum(kube_node_status_allocatable{resource=\"cpu\"})", "legendFormat": "ALLOCATABLE"}
+          ]
+        }
+      ]
+    }
