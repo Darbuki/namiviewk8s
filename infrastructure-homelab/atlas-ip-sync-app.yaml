@@ -4,6 +4,8 @@ metadata:
   name: atlas-ip-sync
   namespace: argocd
   annotations:
+    argocd.argoproj.io/compare-options: ServerSideDiff=true
+  annotations:
     argocd.argoproj.io/sync-wave: "5"
 spec:
   project: namiview
