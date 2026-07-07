@@ -1,6 +1,11 @@
 image:
   repository: 015301735477.dkr.ecr.eu-west-1.amazonaws.com/namiview-triage
+  # Pinned to an immutable digest (was :latest — mutable, re-pulled every restart).
+  # This is the digest :latest currently resolves to; bump it deliberately to
+  # roll triage. Requires the chart's image.digest support (namiview-charts#17).
   tag: latest
+  digest: "sha256:138595f963c0b6d3ca0ddbc67fbb8c5e56cf3fd3625f9796aa559343f4105747"
+  pullPolicy: IfNotPresent
 
 imagePullSecrets:
   - name: regcred
