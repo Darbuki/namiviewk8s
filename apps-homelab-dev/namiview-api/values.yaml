@@ -53,7 +53,7 @@ app:
     # never reaches the UI and uploads hang. (prod: both default to "jobs".)
     jobsCollection: "dev-jobs"
   # Model lineup — Namiview v2 + Physics (Light) only, matching prod.
-  enabledModels: "nami-v2,physics-light,physics-tuned"
+  enabledModels: "nami-v2,physics-light"
 jobs:
   queueUrl: "https://sqs.eu-west-1.amazonaws.com/015301735477/namiview-prod-dev-jobs"
 metrics:

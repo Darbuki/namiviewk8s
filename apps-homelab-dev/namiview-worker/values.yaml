@@ -37,7 +37,7 @@ app:
     collection: "dev-images"
     jobsCollection: "dev-jobs"
   # Model lineup — Namiview v2 + Physics (Light) only, matching prod.
-  enabledModels: "nami-v2,physics-light,physics-tuned"
+  enabledModels: "nami-v2,physics-light"
 vault:
   clusterSecretStore: aws-secrets-manager
   refreshInterval: "1h"
