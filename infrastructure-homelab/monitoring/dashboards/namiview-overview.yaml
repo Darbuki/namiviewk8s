@@ -1,0 +1,229 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dashboard-namiview-overview
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  namiview-overview.json: |
+    {
+      "uid": "namiview-overview",
+      "title": "Namiview · Overview",
+      "tags": ["namiview"],
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "1m",
+      "time": {"from": "now-24h", "to": "now"},
+      "links": [
+        {"type": "dashboards", "title": "Namiview dashboards", "tags": ["namiview"], "asDropdown": true, "includeVars": false, "keepTime": true}
+      ],
+      "templating": {"list": []},
+      "panels": [
+        {
+          "id": 1,
+          "title": "Firing alerts",
+          "description": "Anything other than the always-on Watchdog means something needs attention. Watchdog firing is healthy — it proves the alert path itself works.",
+          "type": "table",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 0, "y": 0, "w": 14, "h": 6},
+          "targets": [
+            {"expr": "ALERTS{alertstate=\"firing\"}", "instant": true, "format": "table"}
+          ],
+          "transformations": [
+            {"id": "organize", "options": {
+              "excludeByName": {"Time": true, "Value": true, "__name__": true, "alertstate": true, "endpoint": true, "instance": true, "job": true, "pod": true, "container": true, "service": true, "prometheus": true},
+              "renameByName": {"alertname": "Alert", "severity": "Severity", "namespace": "Namespace", "component": "Component"}
+            }}
+          ]
+        },
+        {
+          "id": 2,
+          "title": "Deployments ready (prod + dev)",
+          "description": "available / desired replicas straight from kube-state-metrics. Covers UI too, which exposes no Prometheus metrics of its own.",
+          "type": "table",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 14, "y": 0, "w": 10, "h": 6},
+          "targets": [
+            {"expr": "kube_deployment_status_replicas_available{namespace=~\"namiview(-dev)?\"}", "instant": true, "format": "table", "refId": "A"},
+            {"expr": "kube_deployment_spec_replicas{namespace=~\"namiview(-dev)?\"}", "instant": true, "format": "table", "refId": "B"}
+          ],
+          "transformations": [
+            {"id": "joinByField", "options": {"byField": "deployment", "mode": "outer"}},
+            {"id": "organize", "options": {
+              "excludeByName": {"Time 1": true, "Time 2": true, "__name__ 1": true, "__name__ 2": true, "namespace 2": true, "job 1": true, "job 2": true, "instance 1": true, "instance 2": true, "endpoint 1": true, "endpoint 2": true, "container 1": true, "container 2": true, "service 1": true, "service 2": true, "pod 1": true, "pod 2": true, "uid 1": true, "uid 2": true},
+              "renameByName": {"deployment": "Deployment", "namespace 1": "Namespace", "Value #A": "Ready", "Value #B": "Desired"}
+            }}
+          ]
+        },
+        {
+          "id": 3,
+          "title": "The pipeline, end to end (prod, selected range)",
+          "type": "row",
+          "gridPos": {"x": 0, "y": 6, "w": 24, "h": 1},
+          "collapsed": false,
+          "panels": []
+        },
+        {
+          "id": 4,
+          "title": "1 · Uploaded",
+          "description": "POST /api/jobs accepted an image and enqueued it.",
+          "type": "stat",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 0, "y": 7, "w": 5, "h": 5},
+          "targets": [
+            {"expr": "sum(increase(namiview_images_uploaded_total{namespace=\"namiview\"}[$__range]))", "legendFormat": "uploaded"}
+          ],
+          "fieldConfig": {"defaults": {"decimals": 0}}
+        },
+        {
+          "id": 5,
+          "title": "2 · Picked up by worker",
+          "description": "Pulled off SQS. A gap vs 'Uploaded' means work is sitting in the queue — check the queue panels below.",
+          "type": "stat",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 5, "y": 7, "w": 5, "h": 5},
+          "targets": [
+            {"expr": "sum(increase(namiview_worker_jobs_received_total{job=~\"namiview-worker.*\", namespace=\"namiview\"}[$__range]))", "legendFormat": "received"}
+          ],
+          "fieldConfig": {"defaults": {"decimals": 0}}
+        },
+        {
+          "id": 6,
+          "title": "3 · Restored OK",
+          "type": "stat",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 10, "y": 7, "w": 5, "h": 5},
+          "targets": [
+            {"expr": "sum(increase(namiview_worker_jobs_completed_total{job=~\"namiview-worker.*\", namespace=\"namiview\", status=\"success\"}[$__range]))", "legendFormat": "success"}
+          ],
+          "fieldConfig": {"defaults": {"decimals": 0}}
+        },
+        {
+          "id": 7,
+          "title": "Failed",
+          "type": "stat",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 15, "y": 7, "w": 4, "h": 5},
+          "targets": [
+            {"expr": "sum(increase(namiview_worker_jobs_completed_total{job=~\"namiview-worker.*\", namespace=\"namiview\", status!=\"success\"}[$__range]))", "legendFormat": "failed"}
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "decimals": 0,
+              "thresholds": {"mode": "absolute", "steps": [
+                {"color": "green", "value": null},
+                {"color": "red", "value": 1}
+              ]}
+            }
+          }
+        },
+        {
+          "id": 8,
+          "title": "Gallery total",
+          "description": "Absolute count from MongoDB (5-min refresh), not a counter — survives restarts. There is deliberately no 'saved in range' stat: namiview_images_saved_total is never incremented on the current save path (Darbuki/namiview#390).",
+          "type": "stat",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 19, "y": 7, "w": 5, "h": 5},
+          "targets": [
+            {"expr": "max(namiview_gallery_images{namespace=\"namiview\"})", "legendFormat": "images"},
+            {"expr": "max(namiview_unique_users{namespace=\"namiview\"})", "legendFormat": "users"}
+          ],
+          "fieldConfig": {"defaults": {"decimals": 0}}
+        },
+        {
+          "id": 9,
+          "title": "Jobs per bucket (prod + dev)",
+          "description": "increase() per Grafana step, so bar height is a true job count. dev is normally flat zero — it only receives traffic from the dev web UI, not the iOS app.",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 0, "y": 12, "w": 12, "h": 7},
+          "interval": "10m",
+          "targets": [
+            {"expr": "sum by (namespace) (increase(namiview_worker_jobs_received_total{job=~\"namiview-worker.*\"}[$__interval]))", "legendFormat": "{{namespace}}"}
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "decimals": 0,
+              "custom": {"drawStyle": "bars", "fillOpacity": 70, "lineWidth": 0}
+            }
+          }
+        },
+        {
+          "id": 10,
+          "title": "Queue depth + oldest message age",
+          "description": "From CloudWatch via yace. Depth climbing or age rising is the earliest honest sign that jobs are not being drained — a normal job completes in ~5-8s.",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 12, "y": 12, "w": 12, "h": 7},
+          "targets": [
+            {"expr": "aws_sqs_approximate_number_of_messages_visible_maximum{dimension_QueueName=~\"namiview-prod(-dev)?-jobs\"}", "legendFormat": "depth · {{dimension_QueueName}}"},
+            {"expr": "aws_sqs_approximate_age_of_oldest_message_maximum{dimension_QueueName=~\"namiview-prod(-dev)?-jobs\"}", "legendFormat": "age(s) · {{dimension_QueueName}}"}
+          ]
+        },
+        {
+          "id": 11,
+          "title": "Health signals",
+          "type": "row",
+          "gridPos": {"x": 0, "y": 19, "w": 24, "h": 1},
+          "collapsed": false,
+          "panels": []
+        },
+        {
+          "id": 12,
+          "title": "API request rate + 5xx",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 0, "y": 20, "w": 8, "h": 7},
+          "targets": [
+            {"expr": "sum by (namespace) (rate(http_requests_total{namespace=~\"namiview(-dev)?\"}[5m]))", "legendFormat": "all · {{namespace}}"},
+            {"expr": "sum by (namespace) (rate(http_requests_total{namespace=~\"namiview(-dev)?\", status=~\"5..\"}[5m]))", "legendFormat": "5xx · {{namespace}}"}
+          ],
+          "fieldConfig": {"defaults": {"unit": "reqps"}}
+        },
+        {
+          "id": 13,
+          "title": "API latency p95",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 8, "y": 20, "w": 8, "h": 7},
+          "targets": [
+            {"expr": "histogram_quantile(0.95, sum by (namespace, le) (rate(http_request_duration_seconds_bucket{namespace=~\"namiview(-dev)?\"}[5m])))", "legendFormat": "p95 · {{namespace}}"}
+          ],
+          "fieldConfig": {"defaults": {"unit": "s"}}
+        },
+        {
+          "id": 14,
+          "title": "Storage errors /min (mongo · s3 · sqs)",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 16, "y": 20, "w": 8, "h": 7},
+          "targets": [
+            {"expr": "sum by (backend) (rate(namiview_storage_op_errors_total{namespace=~\"namiview(-dev)?\"}[5m])) * 60", "legendFormat": "{{backend}}"}
+          ]
+        },
+        {
+          "id": 15,
+          "title": "Worker liveness — SQS poll outcomes /min",
+          "description": "The single most useful 'is the worker alive?' signal. A healthy IDLE worker still polls ~3x/min per replica. Flat zero here means the poll loop died; flat zero on job counts alone means nothing at all.",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 0, "y": 27, "w": 12, "h": 7},
+          "targets": [
+            {"expr": "sum by (namespace, result) (rate(namiview_worker_poll_iterations_total{job=~\"namiview-worker.*\"}[5m])) * 60", "legendFormat": "{{namespace}} · {{result}}"}
+          ]
+        },
+        {
+          "id": 16,
+          "title": "Job duration p50/p95 (prod)",
+          "type": "timeseries",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 12, "y": 27, "w": 12, "h": 7},
+          "targets": [
+            {"expr": "histogram_quantile(0.50, sum by (le) (increase(namiview_worker_job_duration_seconds_bucket{job=~\"namiview-worker.*\", namespace=\"namiview\"}[1h])))", "legendFormat": "p50"},
+            {"expr": "histogram_quantile(0.95, sum by (le) (increase(namiview_worker_job_duration_seconds_bucket{job=~\"namiview-worker.*\", namespace=\"namiview\"}[1h])))", "legendFormat": "p95"}
+          ],
+          "fieldConfig": {"defaults": {"unit": "s"}}
+        }
+      ]
+    }

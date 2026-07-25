@@ -22,7 +22,7 @@ data:
             "type": "query",
             "datasource": {"type": "prometheus", "uid": "prometheus"},
             "query": "label_values(namiview_storage_op_duration_seconds_count, namespace)",
-            "current": {"text": "namiview-dev", "value": "namiview-dev"},
+            "current": {"text": "namiview", "value": "namiview"},
             "refresh": 1
           }
         ]

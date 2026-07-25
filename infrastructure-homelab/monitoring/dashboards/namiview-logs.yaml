@@ -22,7 +22,7 @@ data:
             "type": "query",
             "datasource": {"type": "loki", "uid": "loki"},
             "query": {"label": "namespace", "refId": "LabelValues"},
-            "current": {"text": "namiview-dev", "value": "namiview-dev"},
+            "current": {"text": "namiview", "value": "namiview"},
             "refresh": 1
           },
           {
@@ -39,9 +39,10 @@ data:
           {
             "name": "level",
             "type": "custom",
-            "query": "All,error,warning,info,debug",
+            "query": "error,warning,info,debug",
             "current": {"text": "All", "value": "$__all"},
             "includeAll": true,
+            "allValue": ".+",
             "multi": true
           }
         ]
@@ -89,12 +90,13 @@ data:
         },
         {
           "id": 4,
-          "title": "All logs (filterable)",
+          "title": "All logs (filterable by service + level)",
+          "description": "The $level filter parses each line as JSON (app logs are structlog). Lines that are not JSON — e.g. the interpreter's startup warnings — are excluded whenever a level is selected. Set level to All to see everything.",
           "type": "logs",
           "datasource": {"type": "loki", "uid": "loki"},
           "gridPos": {"x": 0, "y": 16, "w": 24, "h": 12},
           "targets": [
-            {"expr": "{namespace=\"$namespace\", service=~\"$service\"}",
+            {"expr": "{namespace=\"$namespace\", service=~\"$service\"} | json | level=~\"$level\"",
              "maxLines": 500}
           ],
           "options": {"showTime": true, "showLabels": false, "wrapLogMessage": true, "sortOrder": "Descending"}
