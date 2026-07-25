@@ -24,6 +24,20 @@ spec:
             summary: "namiview-api 5xx rate above 5% in {{ $labels.namespace }}"
             description: "{{ $value | humanizePercentage }} of /api/* requests returned 5xx over the last 5m."
 
+        # Counterpart to WorkerDown. APIPodCrashLoop only catches restart churn,
+        # and HighHTTPErrorRate needs traffic to fire — a hard-down API with no
+        # requests arriving triggered nothing at all.
+        - alert: APIDown
+          expr: |
+            up{job=~"namiview-api.*"} == 0
+          for: 5m
+          labels:
+            severity: critical
+            component: api
+          annotations:
+            summary: "namiview-api scrape target down: {{ $labels.namespace }}/{{ $labels.instance }}"
+            description: "Prometheus cannot scrape the API metrics endpoint. Pod down, or the app failed before start_metrics_server()."
+
         - alert: APIPodCrashLoop
           expr: |
             sum by (namespace, pod) (rate(kube_pod_container_status_restarts_total{namespace=~"namiview(-dev)?", pod=~"namiview-api.*"}[15m])) > 0
