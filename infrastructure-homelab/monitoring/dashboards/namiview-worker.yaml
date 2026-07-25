@@ -12,64 +12,145 @@ data:
       "title": "Namiview · Worker",
       "tags": ["namiview"],
       "schemaVersion": 39,
-      "version": 1,
+      "version": 2,
       "refresh": "30s",
-      "time": {"from": "now-1h", "to": "now"},
+      "time": {"from": "now-24h", "to": "now"},
       "templating": {
         "list": [
           {
             "name": "namespace",
             "type": "query",
             "datasource": {"type": "prometheus", "uid": "prometheus"},
-            "query": "label_values(namiview_worker_poll_iterations_total, namespace)",
-            "current": {"text": "namiview-dev", "value": "namiview-dev"},
+            "query": "label_values(namiview_worker_poll_iterations_total{job=~\"namiview-worker.*\"}, namespace)",
+            "current": {"text": "namiview", "value": "namiview"},
             "refresh": 1
           }
         ]
       },
       "panels": [
         {
+          "id": 10,
+          "title": "Read me before concluding the pipeline is broken",
+          "type": "text",
+          "gridPos": {"x": 0, "y": 0, "w": 24, "h": 4},
+          "options": {
+            "mode": "markdown",
+            "content": "Prod runs a **low, bursty** job volume (~19/day) — most individual hours contain zero jobs, so an empty panel is usually accurate rather than alarming. Job counts are therefore plotted as `increase()` per bucket, not `rate()`.\n\n**`namiview-dev` is idle by design.** Its queue only receives traffic from the dev web UI at `dev.namiview.com`; the iOS app talks to production. A flat-zero dev view means no one used dev, not that the worker is down — confirm with the **SQS poll outcomes** panel, which keeps ticking `empty` on a healthy idle worker.\n\nBackground: `namiview/docs/observability.md`."
+          }
+        },
+        {
+          "id": 6,
+          "title": "Workers up",
+          "type": "stat",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 0, "y": 4, "w": 6, "h": 5},
+          "targets": [
+            {"expr": "sum(up{job=~\"namiview-worker.*\", namespace=\"$namespace\"} == 1)", "legendFormat": "up"}
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {"color": "red", "value": null},
+                  {"color": "green", "value": 1}
+                ]
+              }
+            }
+          }
+        },
+        {
           "id": 1,
           "title": "Jobs in-flight",
           "type": "stat",
           "datasource": {"type": "prometheus", "uid": "prometheus"},
-          "gridPos": {"x": 0, "y": 0, "w": 6, "h": 6},
+          "gridPos": {"x": 6, "y": 4, "w": 6, "h": 5},
           "targets": [
-            {"expr": "sum(namiview_worker_jobs_in_flight{namespace=\"$namespace\"})", "legendFormat": "in-flight"}
+            {"expr": "sum(namiview_worker_jobs_in_flight{job=~\"namiview-worker.*\", namespace=\"$namespace\"})", "legendFormat": "in-flight"}
           ]
+        },
+        {
+          "id": 11,
+          "title": "Jobs received (selected range)",
+          "type": "stat",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 12, "y": 4, "w": 6, "h": 5},
+          "targets": [
+            {"expr": "sum(increase(namiview_worker_jobs_received_total{job=~\"namiview-worker.*\", namespace=\"$namespace\"}[$__range]))", "legendFormat": "received"}
+          ],
+          "fieldConfig": {"defaults": {"decimals": 0}}
+        },
+        {
+          "id": 12,
+          "title": "Jobs failed (selected range)",
+          "type": "stat",
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "gridPos": {"x": 18, "y": 4, "w": 6, "h": 5},
+          "targets": [
+            {"expr": "sum(increase(namiview_worker_jobs_completed_total{job=~\"namiview-worker.*\", namespace=\"$namespace\", status!=\"success\"}[$__range]))", "legendFormat": "failed"}
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "decimals": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {"color": "green", "value": null},
+                  {"color": "red", "value": 1}
+                ]
+              }
+            }
+          }
         },
         {
           "id": 2,
-          "title": "Jobs received (rate /min)",
+          "title": "Jobs received per bucket",
+          "description": "increase() per Grafana step — buckets tile exactly, so bar height is a true job count for that slice of time. rate() over a 5m window is misleading at this volume.",
           "type": "timeseries",
           "datasource": {"type": "prometheus", "uid": "prometheus"},
-          "gridPos": {"x": 6, "y": 0, "w": 9, "h": 6},
+          "gridPos": {"x": 0, "y": 9, "w": 12, "h": 8},
+          "interval": "5m",
           "targets": [
-            {"expr": "sum(rate(namiview_worker_jobs_received_total{namespace=\"$namespace\"}[5m])) * 60",
-             "legendFormat": "received/min"}
-          ]
+            {"expr": "sum(increase(namiview_worker_jobs_received_total{job=~\"namiview-worker.*\", namespace=\"$namespace\"}[$__interval]))",
+             "legendFormat": "received"}
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "decimals": 0,
+              "custom": {"drawStyle": "bars", "fillOpacity": 70, "lineWidth": 0}
+            }
+          }
         },
         {
           "id": 3,
-          "title": "Completion outcome rate /min",
+          "title": "Completion outcome per bucket",
+          "description": "status=\"dlq\" is declared in code but never emitted — DLQ handling is delegated to SQS redrive, so only success/failed appear here.",
           "type": "timeseries",
           "datasource": {"type": "prometheus", "uid": "prometheus"},
-          "gridPos": {"x": 15, "y": 0, "w": 9, "h": 6},
+          "gridPos": {"x": 12, "y": 9, "w": 12, "h": 8},
+          "interval": "5m",
           "targets": [
-            {"expr": "sum by (status) (rate(namiview_worker_jobs_completed_total{namespace=\"$namespace\"}[5m])) * 60",
+            {"expr": "sum by (status) (increase(namiview_worker_jobs_completed_total{job=~\"namiview-worker.*\", namespace=\"$namespace\"}[$__interval]))",
              "legendFormat": "{{status}}"}
-          ]
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "decimals": 0,
+              "custom": {"drawStyle": "bars", "fillOpacity": 70, "lineWidth": 0}
+            }
+          }
         },
         {
           "id": 4,
           "title": "Job duration p50/p95",
+          "description": "Quantiles over a 1h sliding window; at ~19 jobs/day a shorter window is mostly empty buckets.",
           "type": "timeseries",
           "datasource": {"type": "prometheus", "uid": "prometheus"},
-          "gridPos": {"x": 0, "y": 6, "w": 12, "h": 8},
+          "gridPos": {"x": 0, "y": 17, "w": 12, "h": 8},
           "targets": [
-            {"expr": "histogram_quantile(0.50, sum by (le) (rate(namiview_worker_job_duration_seconds_bucket{namespace=\"$namespace\"}[5m])))",
+            {"expr": "histogram_quantile(0.50, sum by (le) (increase(namiview_worker_job_duration_seconds_bucket{job=~\"namiview-worker.*\", namespace=\"$namespace\"}[1h])))",
              "legendFormat": "p50"},
-            {"expr": "histogram_quantile(0.95, sum by (le) (rate(namiview_worker_job_duration_seconds_bucket{namespace=\"$namespace\"}[5m])))",
+            {"expr": "histogram_quantile(0.95, sum by (le) (increase(namiview_worker_job_duration_seconds_bucket{job=~\"namiview-worker.*\", namespace=\"$namespace\"}[1h])))",
              "legendFormat": "p95"}
           ],
           "fieldConfig": {"defaults": {"unit": "s"}}
@@ -77,22 +158,13 @@ data:
         {
           "id": 5,
           "title": "SQS poll outcomes /min",
+          "description": "The liveness signal. A healthy idle worker still logs ~3 empty polls/min; if this flatlines, the worker really is stuck.",
           "type": "timeseries",
           "datasource": {"type": "prometheus", "uid": "prometheus"},
-          "gridPos": {"x": 12, "y": 6, "w": 12, "h": 8},
+          "gridPos": {"x": 12, "y": 17, "w": 12, "h": 8},
           "targets": [
-            {"expr": "sum by (result) (rate(namiview_worker_poll_iterations_total{namespace=\"$namespace\"}[5m])) * 60",
+            {"expr": "sum by (result) (rate(namiview_worker_poll_iterations_total{job=~\"namiview-worker.*\", namespace=\"$namespace\"}[5m])) * 60",
              "legendFormat": "{{result}}"}
-          ]
-        },
-        {
-          "id": 6,
-          "title": "Worker pods up",
-          "type": "stat",
-          "datasource": {"type": "prometheus", "uid": "prometheus"},
-          "gridPos": {"x": 0, "y": 14, "w": 6, "h": 4},
-          "targets": [
-            {"expr": "sum(up{job=~\"namiview-worker.*\"} == 1)", "legendFormat": "up"}
           ]
         }
       ]
