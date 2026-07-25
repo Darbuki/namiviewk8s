@@ -37,6 +37,12 @@ vault:
 app:
   googleRedirectUri: "https://namiview.com/api/auth/callback"
   corsOrigins: "https://namiview.com"
+  # Native (iOS) Google sign-in — Darbuki/namiview#392. A SEPARATE Google client
+  # for the installed app: no client secret (PKCE stands in), and Google only
+  # accepts the reversed-client-id redirect, which the server derives from this
+  # value so app and server cannot drift. Not a secret — an iOS client id ships
+  # inside every copy of the app binary.
+  googleIosClientId: "542045808093-trv807l367n4e6m8lhr2r4g24m1qmgnl.apps.googleusercontent.com"
   # Prod model lineup: Nami v2 + Physics (Light) only. Must match the worker.
   enabledModels: "nami-v2,physics-light"
   mongo:
