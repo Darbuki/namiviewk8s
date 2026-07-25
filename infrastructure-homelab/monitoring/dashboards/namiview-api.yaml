@@ -22,7 +22,7 @@ data:
             "type": "query",
             "datasource": {"type": "prometheus", "uid": "prometheus"},
             "query": "label_values(http_requests_total{handler=~\"/api.*\"}, namespace)",
-            "current": {"text": "namiview-dev", "value": "namiview-dev"},
+            "current": {"text": "namiview", "value": "namiview"},
             "refresh": 1,
             "sort": 1
           }
@@ -95,25 +95,29 @@ data:
         },
         {
           "id": 6,
-          "title": "Images uploaded (counter)",
+          "title": "Images uploaded (selected range)",
+          "description": "increase() over the dashboard range. The bare counter this replaced was cumulative since pod start, so it silently meant 'since the last deploy' while sitting next to a time picker.",
           "type": "stat",
           "datasource": {"type": "prometheus", "uid": "prometheus"},
           "gridPos": {"x": 8, "y": 16, "w": 8, "h": 5},
           "targets": [
-            {"expr": "sum(namiview_images_uploaded_total{namespace=\"$namespace\"})",
+            {"expr": "sum(increase(namiview_images_uploaded_total{namespace=\"$namespace\"}[$__range]))",
              "legendFormat": "uploaded"}
-          ]
+          ],
+          "fieldConfig": {"defaults": {"decimals": 0}}
         },
         {
           "id": 7,
-          "title": "Images saved to gallery (counter)",
+          "title": "Gallery images (total in Mongo)",
+          "description": "Absolute count from MongoDB, refreshed every 5 min — not a counter, so it survives restarts. Replaces a namiview_images_saved_total panel that read 0 forever: the current save path (POST /jobs/{id}/save) bypasses services/gallery_service.py where IMAGES_SAVED.inc() lives. See Darbuki/namiview#390.",
           "type": "stat",
           "datasource": {"type": "prometheus", "uid": "prometheus"},
           "gridPos": {"x": 16, "y": 16, "w": 8, "h": 5},
           "targets": [
-            {"expr": "sum(namiview_images_saved_total{namespace=\"$namespace\"})",
-             "legendFormat": "saved"}
-          ]
+            {"expr": "max(namiview_gallery_images{namespace=\"$namespace\"})",
+             "legendFormat": "gallery images"}
+          ],
+          "fieldConfig": {"defaults": {"decimals": 0}}
         }
       ]
     }
